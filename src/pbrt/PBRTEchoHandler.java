@@ -52,7 +52,28 @@ public class PBRTEchoHandler implements PBRTParseHandler {
 	public void attributeEnd() {
 		--indentation;
 		println("AttributeEnd");
+	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pbrt.PBRTParseHandler#transformBegin()
+	 */
+	@Override
+	public void transformBegin() {
+		println("TransformBegin");
+		++indentation;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pbrt.PBRTParseHandler#transformEnd()
+	 */
+	@Override
+	public void transformEnd() {
+		--indentation;
+		println("TransformEnd");
 	}
 
 	/*
@@ -120,6 +141,23 @@ public class PBRTEchoHandler implements PBRTParseHandler {
 				+ " " + m10 + " " + m11 + " " + m12 + " " + m13 + m20 + " "
 				+ m21 + " " + m22 + " " + m23 + m30 + " " + m31 + " " + m32
 				+ " " + m33 + " ]");
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see parser.PBRTParseHandler#concatTransform(float, float, float, float,
+	 * float, float, float, float, float, float, float, float, float, float,
+	 * float, float)
+	 */
+	@Override
+	public void transform(float m00, float m01, float m02, float m03,
+			float m10, float m11, float m12, float m13, float m20, float m21,
+			float m22, float m23, float m30, float m31, float m32, float m33) {
+		println("Transform [" + m00 + " " + m01 + " " + m02 + " " + m03 + " "
+				+ m10 + " " + m11 + " " + m12 + " " + m13 + m20 + " " + m21
+				+ " " + m22 + " " + m23 + m30 + " " + m31 + " " + m32 + " "
+				+ m33 + " ]");
 	}
 
 	/*

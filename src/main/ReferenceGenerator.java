@@ -8,10 +8,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import pbrt.PBRTParser;
 import pbrt.PBRTProperty;
 import pbrt.PBRTScene;
+import util.FileUtil;
 import core.RenderJob;
 
 /**
@@ -22,8 +24,10 @@ import core.RenderJob;
  * 
  */
 public class ReferenceGenerator {
-	private static final int resolution = 1024;
-	private static final int repetition = 10;
+	private static final Random random = new Random();
+	private static final int resolution = 512;
+	private static final int repetition = 4;
+	private static final int testSamples = 1024;
 	private static final int[] samples = { 1, 4, 8, 16, 32, 64, 128, 256, 1024,
 			2048, 4096, 8192 };
 	private static final int reference = 131072;
@@ -39,6 +43,8 @@ public class ReferenceGenerator {
 			script("bdpt.sh", bdpt);
 			List<RenderJob> mlt = mlt(scene);
 			script("mlt.sh", mlt);
+			List<RenderJob> mlt_tune = mlt_tuning(scene);
+			script("mlt_tune.sh", mlt_tune);
 		}
 	}
 
@@ -80,9 +86,8 @@ public class ReferenceGenerator {
 				String output = scene.findSetting("Film.filename");
 
 				writer.write(String.format(
-						"{ time ./pbrt --quiet \"%s\" ; } 2> \"%s\"", "scenes/"
-								+ job.sceneName + "/" + job.file.getName(),
-						output + "-time.txt"));
+						"{ time ./pbrt --quiet \"%s\" ; } 2> \"%s\"",
+						job.file.getPath(), output + "-time.txt"));
 				writer.newLine();
 				writer.write(String.format(
 						"echo \"[% 4.1f%% ] finished rendering %s!\"",
@@ -93,7 +98,7 @@ public class ReferenceGenerator {
 
 		}
 
-		return null;
+		return file;
 
 	}
 
@@ -104,22 +109,15 @@ public class ReferenceGenerator {
 	public static List<RenderJob> bdpt(String sceneName) throws IOException {
 		List<RenderJob> result = new ArrayList<RenderJob>();
 
-		File scenes = new File("scenes");
-		if (!scenes.exists())
-			if (!scenes.mkdir())
-				throw new IOException("coudl not make \"scenes\" folder!");
-		File sceneFolder = new File(scenes, sceneName);
-		if (!sceneFolder.exists())
-			if (!sceneFolder.mkdir())
-				throw new IOException("could not make \"" + sceneName
-						+ "\" folder!");
+		File bdptFolder = new File("test/" + sceneName + "/bdpt");
+		FileUtil.mkdirs(bdptFolder);
 
 		// Generate the references
 		for (int i = 0; i < repetition; ++i) {
 			for (int sample : samples) {
 				String filename = String.format("%s-bdpt-%06dspp-%02d",
 						sceneName, sample, i);
-				File file = new File(sceneFolder, filename.concat(".pbrt"));
+				File file = new File(bdptFolder, filename.concat(".pbrt"));
 
 				PBRTScene scene = new PBRTScene(sceneName);
 
@@ -133,7 +131,8 @@ public class ReferenceGenerator {
 				scene.addChild(new PBRTProperty("Sampler")
 						.setValue("lowdiscrepancy")
 						.setIntegerSetting("pixelsamples", sample)
-						.setIntegerSetting("seed", i));
+						.setIntegerSetting("seed",
+								random.nextInt(Integer.MAX_VALUE)));
 
 				scene.addChild(new PBRTProperty("Integrator").setValue("bdpt")
 						.setIntegerSetting("maxdepth", 16));
@@ -150,7 +149,7 @@ public class ReferenceGenerator {
 		{
 			String filename = String.format("%s-bdpt-%06dspp", sceneName,
 					reference);
-			File file = new File(sceneFolder, filename.concat(".pbrt"));
+			File file = new File(bdptFolder, filename.concat(".pbrt"));
 
 			PBRTScene scene = new PBRTScene(sceneName);
 
@@ -164,7 +163,8 @@ public class ReferenceGenerator {
 			scene.addChild(new PBRTProperty("Sampler")
 					.setValue("lowdiscrepancy")
 					.setIntegerSetting("pixelsamples", reference)
-					.setIntegerSetting("seed", 0));
+					.setIntegerSetting("seed",
+							random.nextInt(Integer.MAX_VALUE)));
 
 			scene.addChild(new PBRTProperty("Integrator").setValue("bdpt")
 					.setIntegerSetting("maxdepth", 16));
@@ -186,22 +186,15 @@ public class ReferenceGenerator {
 	public static List<RenderJob> mlt(String sceneName) throws IOException {
 		List<RenderJob> result = new ArrayList<RenderJob>();
 
-		File scenes = new File("scenes");
-		if (!scenes.exists())
-			if (!scenes.mkdir())
-				throw new IOException("coudl not make \"scenes\" folder!");
-		File sceneFolder = new File(scenes, sceneName);
-		if (!sceneFolder.exists())
-			if (!sceneFolder.mkdir())
-				throw new IOException("could not make \"" + sceneName
-						+ "\" folder!");
+		File mltFolder = new File("test/" + sceneName + "/mlt");
+		FileUtil.mkdirs(mltFolder);
 
 		// Generate the references
 		for (int i = 0; i < repetition; ++i) {
 			for (int sample : samples) {
 				String filename = String.format("%s-mlt-%06dspp-%02d",
 						sceneName, sample, i);
-				File file = new File(sceneFolder, filename.concat(".pbrt"));
+				File file = new File(mltFolder, filename.concat(".pbrt"));
 
 				PBRTScene scene = new PBRTScene(sceneName);
 
@@ -212,10 +205,12 @@ public class ReferenceGenerator {
 						.setStringSetting("filename",
 								"results/" + sceneName + "/" + filename));
 
-				scene.addChild(new PBRTProperty("Integrator").setValue("mlt")
+				scene.addChild(new PBRTProperty("Integrator")
+						.setValue("pssmlt")
 						.setIntegerSetting("maxdepth", 16)
 						.setIntegerSetting("mutationsperpixel", sample)
-						.setIntegerSetting("seed", repetition));
+						.setIntegerSetting("seed",
+								random.nextInt(Integer.MAX_VALUE)));
 
 				scene.addChild(new PBRTProperty("Include")
 						.setValue("common.pbrt"));
@@ -223,6 +218,61 @@ public class ReferenceGenerator {
 				scene.print(file);
 
 				result.add(new RenderJob(file, sceneName, sample));
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * @throws IOException
+	 * 
+	 */
+	public static List<RenderJob> mlt_tuning(String sceneName)
+			throws IOException {
+		List<RenderJob> result = new ArrayList<RenderJob>();
+
+		File mltFolder = new File("test/" + sceneName + "/mlt-tuning");
+		FileUtil.rm(mltFolder);
+		FileUtil.mkdirs(mltFolder);
+
+		// Generate the references
+		for (int i = 0; i < repetition; ++i) {
+			for (float large = 0.05f; large < 0.5f; large += 0.05f) {
+				for (float sigma = 0.002f;; sigma *= 1.5f) {
+					String filename = String.format(
+							"%s-mlttune-spp-%06d-sigma-%.4f-step-%.2f-%02d",
+							sceneName, testSamples, sigma, large, i);
+					File file = new File(mltFolder, filename.concat(".pbrt"));
+
+					PBRTScene scene = new PBRTScene(sceneName);
+
+					scene.addChild(new PBRTProperty("Film")
+							.setValue("image")
+							.setIntegerSetting("xresolution", resolution)
+							.setIntegerSetting("yresolution", resolution)
+							.setStringSetting("filename",
+									"results/" + sceneName + "/" + filename));
+
+					scene.addChild(new PBRTProperty("Integrator")
+							.setValue("pssmlt")
+							.setIntegerSetting("maxdepth", 16)
+							.setIntegerSetting("mutationsperpixel", testSamples)
+							.setFloatSetting("sigma", sigma)
+							.setFloatSetting("largestepprobability", large)
+							.setIntegerSetting("seed",
+									random.nextInt(Integer.MAX_VALUE)));
+
+					scene.addChild(new PBRTProperty("Include")
+							.setValue("common.pbrt"));
+
+					scene.print(file);
+
+					result.add(new RenderJob(file, sceneName, testSamples));
+
+					if (sigma > 1)
+						break;
+				}
 			}
 		}
 

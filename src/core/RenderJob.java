@@ -3,13 +3,25 @@ package core;
 import java.io.File;
 
 /**
+ * Represents a .pbrt scene file which needs to be rendered.
  * 
  * @author Niels Billen
  * @version 0.1
  */
 public class RenderJob implements Comparable<RenderJob> {
+	/**
+	 * 
+	 */
 	public final File file;
+
+	/**
+	 * 
+	 */
 	public final int samples;
+
+	/**
+	 * 
+	 */
 	public final String sceneName;
 
 	/**

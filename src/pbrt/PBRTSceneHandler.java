@@ -236,6 +236,22 @@ public class PBRTSceneHandler implements PBRTParseHandler {
 	/*
 	 * (non-Javadoc)
 	 * 
+	 * @see parser.PBRTParseHandler#concatTransform(float, float, float, float,
+	 * float, float, float, float, float, float, float, float, float, float,
+	 * float, float)
+	 */
+	@Override
+	public void transform(float m00, float m01, float m02, float m03,
+			float m10, float m11, float m12, float m13, float m20, float m21,
+			float m22, float m23, float m30, float m31, float m32, float m33) {
+		PBRTTransform transform = new PBRTTransform(m00, m01, m02, m03, m10,
+				m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
+		e.getFirst().addChild(transform);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pbrtparser.PBRTParseHandler#attributeBegin()
 	 */
 	@Override
@@ -251,6 +267,30 @@ public class PBRTSceneHandler implements PBRTParseHandler {
 	 */
 	@Override
 	public void attributeEnd() {
+		if (e.size() < 2)
+			throw new IllegalStateException("degenerate stack!");
+		PBRTElement element = e.removeFirst();
+		e.getFirst().addChild(element);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pbrt.PBRTParseHandler#transformBegin()
+	 */
+	@Override
+	public void transformBegin() {
+		PBRTGroup group = new PBRTGroup("TransformBegin", "TransformEnd");
+		e.addFirst(group);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pbrt.PBRTParseHandler#transformEnd()
+	 */
+	@Override
+	public void transformEnd() {
 		if (e.size() < 2)
 			throw new IllegalStateException("degenerate stack!");
 		PBRTElement element = e.removeFirst();

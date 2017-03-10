@@ -115,7 +115,7 @@ public class PBRTParser {
 		List<String> groups = group(fileString, handler);
 
 		String sceneName = file.getName().replaceFirst("\\..+$", "");
-		
+
 		handler.start(sceneName);
 		parse(groups, handler);
 		handler.end();
@@ -259,7 +259,8 @@ public class PBRTParser {
 				} else if (s[0].equals("float")) {
 					float value = parseFloat(groups.get(i + 1));
 					handler.floatParameter(s[1], value);
-				} else if (s[0].equals("color") || s[0].equals("point")) {
+				} else if (s[0].equals("color") || s[0].equals("rgb")
+						|| s[0].equals("point")) {
 					int k = 1;
 					while (true) {
 						try {
@@ -304,6 +305,13 @@ public class PBRTParser {
 						array[9], array[10], array[11], array[12], array[13],
 						array[14], array[15]);
 				i += array.length;
+			} else if (element.equals("Transform")) {
+				float[] array = parseFloatArray(groups, i + 1, i + 17);
+				handler.transform(array[0], array[1], array[2], array[3],
+						array[4], array[5], array[6], array[7], array[8],
+						array[9], array[10], array[11], array[12], array[13],
+						array[14], array[15]);
+				i += array.length;
 			} else if (element.equals("Translate")) {
 				float[] array = parseFloatArray(groups, i + 1, i + 4);
 				handler.translate(array[0], array[1], array[2]);
@@ -319,6 +327,10 @@ public class PBRTParser {
 			else if (element.equals("AttributeBegin"))
 				handler.attributeBegin();
 			else if (element.equals("AttributeEnd"))
+				handler.attributeEnd();
+			else if (element.equals("TransformBegin"))
+				handler.attributeBegin();
+			else if (element.equals("TransformEnd"))
 				handler.attributeEnd();
 			else if (element.equals("ObjectBegin"))
 				handler.objectBegin(groups.get(++i));
@@ -375,7 +387,10 @@ public class PBRTParser {
 	 */
 	private float parseFloat(String string) {
 		try {
-			return Float.parseFloat(string);
+			float result = Float.parseFloat(string);
+			if (Math.abs(result) < 1e-6)
+				return 0;
+			return result;
 		} catch (NumberFormatException e) {
 			return -1;
 		}

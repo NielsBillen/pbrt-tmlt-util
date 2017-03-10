@@ -22,6 +22,9 @@ public class PBRTConcatTransform extends PBRTElement {
 	public PBRTConcatTransform(float... array) {
 		if (array == null)
 			throw new NullPointerException("the given array is null!");
+		if (array.length != 16)
+			throw new IllegalArgumentException(
+					"expected 16 floats for the transformation!");
 		this.array = Arrays.copyOf(array, 16);
 	}
 
@@ -34,11 +37,21 @@ public class PBRTConcatTransform extends PBRTElement {
 	protected void describeSelf(StringBuilder b, int indent) {
 		indent(b, indent).append("ConcatTransform [");
 		for (int i = 0; i < 4; ++i) {
-			indent(b, indent);
 			for (int j = 0; j < 4; ++j)
-				b.append(" ").append(array[4 * i + j]);
+				b.append(String.format(" %f", this.array[4 * i + j]));
+
+			if (i < 3) {
+				b.append("\n");
+				indent(b, indent).append("                 ");
+			}
 		}
 		b.append(" ]\n");
+		// for (int i = 0; i < 4; ++i) {
+		// indent(b, indent);
+		// for (int j = 0; j < 4; ++j)
+		// b.append(" ").append(array[4 * i + j]);
+		// }
+		// b.append(" ]\n");
 	}
 
 	/*

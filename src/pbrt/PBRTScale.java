@@ -1,5 +1,10 @@
 package pbrt;
 
+/**
+ * 
+ * @author Niels Billen
+ * @version 0.1
+ */
 public class PBRTScale extends PBRTElement {
 	private float x, y, z;
 
