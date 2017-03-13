@@ -294,10 +294,10 @@ public class PBRTEchoHandler implements PBRTParseHandler {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see parser.PBRTParseHandler#start(java.lang.String)
+	 * @see pbrt.PBRTParseHandler#start()
 	 */
 	@Override
-	public void start(String sceneName) {
+	public void start() {
 	}
 
 	/*

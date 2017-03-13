@@ -215,7 +215,8 @@ public class PBRTProperty extends PBRTElement {
 				b.append(" \"" + elementValue + "\"");
 		for (Entry<String, String> e : strings.entrySet()) {
 			indent(b.append("\n"), indent + 1);
-			b.append("\"string " + e.getKey() + "\" [ \"" + e.getValue() + "\" ]");
+			b.append("\"string " + e.getKey() + "\" [ \"" + e.getValue()
+					+ "\" ]");
 		}
 		for (Entry<String, Boolean> e : booleans.entrySet()) {
 			indent(b.append("\n"), indent + 1);
@@ -493,6 +494,20 @@ public class PBRTProperty extends PBRTElement {
 			throw new NullPointerException("the given name is null!");
 		removeSetting(name);
 		floats.put(name, setting);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param setting
+	 * @throws NullPointerException
+	 */
+	public PBRTProperty setFloatSetting(String name, double setting) {
+		if (name == null)
+			throw new NullPointerException("the given name is null!");
+		removeSetting(name);
+		floats.put(name, (float) setting);
 		return this;
 	}
 

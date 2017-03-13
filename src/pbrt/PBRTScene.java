@@ -8,28 +8,11 @@ package pbrt;
  */
 public class PBRTScene extends PBRTElement {
 	/**
-	 * The name of the scene.
-	 */
-	private String sceneName;
-
-	/**
 	 * 
 	 * @param sceneName
 	 * @throws NullPointerException
 	 */
-	public PBRTScene(String sceneName) throws NullPointerException {
-		if (sceneName == null)
-			throw new NullPointerException("the given scene name is null!");
-		this.sceneName = sceneName;
-	}
-
-	/**
-	 * Returns the name of the scene;
-	 * 
-	 * @return
-	 */
-	public String getName() {
-		return sceneName;
+	public PBRTScene() throws NullPointerException {
 	}
 
 	/*
@@ -60,7 +43,7 @@ public class PBRTScene extends PBRTElement {
 	 */
 	@Override
 	public PBRTElement copy() {
-		PBRTScene result = new PBRTScene(sceneName);
+		PBRTScene result = new PBRTScene();
 		for (PBRTElement element : this)
 			result.addChild(element.copy());
 		return result;

@@ -27,13 +27,11 @@ public class PBRTSceneHandler implements PBRTParseHandler {
 	}
 
 	/*
-	 * (non-Javadoc)
 	 * 
-	 * @see pbrtparser.PBRTParseHandler#start(java.lang.String)
 	 */
 	@Override
-	public void start(String sceneName) {
-		root = new PBRTScene(sceneName);
+	public void start() {
+		root = new PBRTScene();
 		e.addFirst(root);
 	}
 

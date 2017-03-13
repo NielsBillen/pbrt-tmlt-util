@@ -1,6 +1,8 @@
 package util;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 /**
  * Utilities for operations on files.
@@ -9,6 +11,23 @@ import java.io.File;
  * @version 0.1
  */
 public class FileUtil {
+	/**
+	 * 
+	 * @param file
+	 * @param parent
+	 * @return
+	 */
+	public static boolean isChild(File file, File parent) {
+		if (file.equals(parent))
+			return false;
+
+		File p = file.getParentFile();
+		if (p == null)
+			return false;
+
+		return isChild(p, parent);
+	}
+
 	/**
 	 * 
 	 * @param format
@@ -76,5 +95,53 @@ public class FileUtil {
 				return false;
 		}
 		return absolute.mkdir();
+	}
+
+	/**
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public static boolean cp(String from, String to) {
+		return cp(new File(from), new File(to));
+	}
+
+	/**
+	 * 
+	 * @param from
+	 * @param to
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean cp(File from, File to) {
+		if (from.equals(to))
+			return false;
+		if (isChild(to, from))
+			return false;
+		if (to.exists())
+			return false;
+		if (!from.exists())
+			return false;
+
+		if (from.isDirectory()) {
+			if (!mkdirs(to))
+				return false;
+			for (File fromFile : from.listFiles()) {
+				File toFile = new File(to, fromFile.getName());
+				if (!cp(fromFile, toFile))
+					return false;
+
+			}
+			return true;
+
+		} else {
+			try {
+				Files.copy(from.toPath(), to.toPath());
+				return true;
+			} catch (IOException e) {
+				return false;
+			}
+		}
 	}
 }

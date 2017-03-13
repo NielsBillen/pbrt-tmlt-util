@@ -46,6 +46,8 @@ public class PBRTParser {
 		properties.add("Material");
 		properties.add("NamedMaterial");
 		properties.add("MakeNamedMaterial");
+		properties.add("MakeNamedMedium");
+		properties.add("MediumInterface");
 		properties.add("Texture");
 		properties.add("Shape");
 		properties.add("LightSource");
@@ -114,9 +116,7 @@ public class PBRTParser {
 
 		List<String> groups = group(fileString, handler);
 
-		String sceneName = file.getName().replaceFirst("\\..+$", "");
-
-		handler.start(sceneName);
+		handler.start();
 		parse(groups, handler);
 		handler.end();
 	}

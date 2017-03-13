@@ -7,11 +7,8 @@ package pbrt;
  * @version 1.0
  */
 public interface PBRTParseHandler {
-	/**
-	 * 
-	 * @param sceneName
-	 */
-	public void start(String sceneName);
+
+	public void start();
 
 	public void end();
 

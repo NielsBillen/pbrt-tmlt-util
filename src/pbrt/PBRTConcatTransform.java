@@ -3,7 +3,6 @@ package pbrt;
 import java.util.Arrays;
 
 /**
- * Specifies the look at direction in a {@link PBRTScene}.
  * 
  * @author Niels Billen
  * @version 1.0
@@ -18,6 +17,8 @@ public class PBRTConcatTransform extends PBRTElement {
 	 *            the array to construct this {@link PBRTConcatTransform} from.
 	 * @throws NullPointerException
 	 *             when the given array is null.
+	 * @throws IllegalArgumentException
+	 *             when the given array size is larger than 16.
 	 */
 	public PBRTConcatTransform(float... array) {
 		if (array == null)
@@ -46,12 +47,6 @@ public class PBRTConcatTransform extends PBRTElement {
 			}
 		}
 		b.append(" ]\n");
-		// for (int i = 0; i < 4; ++i) {
-		// indent(b, indent);
-		// for (int j = 0; j < 4; ++j)
-		// b.append(" ").append(array[4 * i + j]);
-		// }
-		// b.append(" ]\n");
 	}
 
 	/*
