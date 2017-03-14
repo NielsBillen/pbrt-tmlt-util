@@ -1,6 +1,5 @@
 package utilities;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -92,10 +91,9 @@ public class ReferenceRenderer {
 					+ ".pbrt");
 
 		for (PSSMLTJob render : renders) {
-			System.out.format("[ started rendering %s ]\n",
+			System.out.format("started rendering \"%s\" ...\n",
 					render.getOutputFilename());
 			render.execute(directory + pbrt, directory + output, 0, 0);
 		}
-
 	}
 }

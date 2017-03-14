@@ -169,6 +169,9 @@ public abstract class RenderJob {
 
 		final PBRTScene scene = build(outputFile);
 		final File job = new File(directory, outputName + ".pbrt");
+		final File stdout = new File(outputSceneDirectory,
+				outputName.concat("-stdout.txt"));
+		job.deleteOnExit();
 		try {
 			scene.print(job);
 		} catch (IOException e) {
@@ -187,6 +190,8 @@ public abstract class RenderJob {
 			ProcessBuilder builder = new ProcessBuilder(commands);
 			builder = builder.directory(pbrt.getParentFile().toPath().toFile()
 					.getAbsoluteFile());
+			builder = builder.redirectError(stdout);
+			builder = builder.redirectOutput(stdout);
 			Process process = builder.start();
 
 			int result = process.waitFor();
@@ -206,7 +211,8 @@ public abstract class RenderJob {
 
 		final File outputScene = new File(outputSceneDirectory,
 				outputName.concat(".pbrt"));
-		job.renameTo(outputScene);
+		FileUtil.cp(job, outputScene);
+		// job.renameTo(outputScene);
 
 	}
 
