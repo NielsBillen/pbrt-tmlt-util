@@ -11,7 +11,7 @@ import pbrt.PBRTParser;
 import pbrt.PBRTScene;
 
 /**
- * A utility which can cleanup a .pbrt scene file.
+ * A utility which can cleanup the formatting of a .pbrt scene file.
  * 
  * @author Niels Billen
  * @version 0.1
@@ -42,14 +42,29 @@ public class PBRTCleaner {
 	}
 
 	/**
+	 * Provides a command-line interface for cleaning multiple .pbrt scene
+	 * files.
 	 * 
 	 * @param arguments
+	 *            the arguments from the command-line interface.
+	 * @throws NullPointerException
+	 *             when the given list of arguments is null.
+	 * @throws NullPointerException
+	 *             when one of the commands is null.
 	 */
-	public static void clean(LinkedList<String> arguments) {
+	public static void clean(LinkedList<String> arguments)
+			throws NullPointerException {
+		if (arguments == null)
+			throw new NullPointerException(
+					"the given list of arguments is null!");
+
 		while (!arguments.isEmpty()) {
 			String argument = arguments.getFirst();
 
-			if (argument.equals("-help")) {
+			if (argument == null)
+				throw new NullPointerException(
+						"one of the command line arguments is null!");
+			else if (argument.equals("-help")) {
 				System.out
 						.println("usage: -clean <filename> -output <filename>");
 				System.out

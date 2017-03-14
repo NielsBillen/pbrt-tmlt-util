@@ -72,14 +72,12 @@ public class PSSMLTJob extends RenderJob {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see core.RenderJob#outputFilename(java.lang.String, long, int)
+	 * @see core.RenderJob#outputFilename()
 	 */
 	@Override
-	public String outputFilename(String sceneName, long seed, int repetition) {
-		return String.format(
-				"%s-pssmlt-mutations-%d-sigma-%f-step-%f-seed-%d-%d",
-				sceneName, mutationsPerPixel, sigma, largeStep, seed,
-				repetition);
+	public String getOutputFilename() {
+		return String.format("%s-pssmlt-mutations-%d-sigma-%f-step-%f",
+				sceneName, mutationsPerPixel, sigma, largeStep);
 	}
 
 	/*
