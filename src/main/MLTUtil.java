@@ -22,25 +22,25 @@ public class MLTUtil {
 				"/home/niels/workspace/pbrt-tmlt/scenes/kitchen",
 				Settings.xResolution, Settings.yResolution,
 				Settings.referenceSamples, 0.01, 0.3);
-		kitchen.execute(pbrt, output, 0, 0);
+		kitchen.execute(pbrt, output, 1, 1);
 
 		PSSMLTJob mirrorBalls = new PSSMLTJob(
 				"/home/niels/workspace/pbrt-tmlt/scenes/mirror-balls",
 				Settings.xResolution, Settings.yResolution,
 				Settings.referenceSamples, 0.01, 0.3);
-		mirrorBalls.execute(pbrt, output, 0, 0);
+		mirrorBalls.execute(pbrt, output, 1, 1);
 
 		PSSMLTJob mirrorRing = new PSSMLTJob(
 				"/home/niels/workspace/pbrt-tmlt/scenes/mirror-ring",
 				Settings.xResolution, Settings.yResolution,
 				Settings.referenceSamples, 0.01, 0.3);
-		mirrorRing.execute(pbrt, output, 0, 0);
+		mirrorRing.execute(pbrt, output, 1, 1);
 
 		PSSMLTJob glass = new PSSMLTJob(
 				"/home/niels/workspace/pbrt-tmlt/scenes/caustic-glass",
 				Settings.xResolution, Settings.yResolution,
 				Settings.referenceSamples, 0.01, 0.3);
-		glass.execute(pbrt, output, 0, 0);
+		glass.execute(pbrt, output, 1, 1);
 
 		// if (args.length == 0) {
 		// System.out.println("usage: tmlt-util");
