@@ -68,11 +68,11 @@ public class PBRTCleaner {
 				System.out
 						.println("usage: -clean <filename> -output <filename>");
 				System.out
-						.println("-help                 prints the manual for this command");
+						.println("  -help                 prints the manual for this command");
 				System.out
-						.println("-output <filename>    where the output should be written to.");
+						.println("  -output <filename>    where the output should be written to.");
 				System.out
-						.println("                      default is System.out");
+						.println("                        default is System.out");
 				arguments.removeFirst();
 			} else if (argument.startsWith("-")) {
 				break;

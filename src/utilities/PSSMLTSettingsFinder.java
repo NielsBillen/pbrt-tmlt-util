@@ -3,30 +3,24 @@ package utilities;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import util.CLI;
 import util.Settings;
 import core.PSSMLTJob;
 
-/**
- * A utility which renders the reference renders of a scene.
- * 
- * @author Niels Billen
- * @version 0.1
- */
-public class ReferenceRenderer {
+public class PSSMLTSettingsFinder {
 	/**
 	 * 
 	 * @param arguments
 	 */
-	public static void generateReferences(LinkedList<String> arguments) {
+	public static void generateData(LinkedList<String> arguments) {
 		int xresolution = Settings.xResolution;
 		int yresolution = Settings.yResolution;
-		int samples = Settings.referenceSamples;
-		double sigma = 0.01;
-		double largeStep = 0.3;
+		int repetitions = 5;
+		int samples = 1024;
 		String pbrt = "pbrt";
-		String output = "output/pssmltsettings";
+		String output = "output/references";
 		String directory = "";
 
 		List<PSSMLTJob> renders = new ArrayList<PSSMLTJob>();
@@ -35,7 +29,7 @@ public class ReferenceRenderer {
 
 			if (token.equals("-help") || token.equals("--help")) {
 				System.out
-						.println("usage: -reference [<options>] <scene directories>");
+						.println("usage: -pssmltsettings [<options>] <scene directories>");
 				System.out
 						.println("  -help                     prints the manual for this command");
 				System.out
@@ -45,20 +39,18 @@ public class ReferenceRenderer {
 				System.out
 						.println("  -yresolution <integer>    vertical resolution of the reference image (default 128).");
 				System.out
-						.println("  -samples <integer>        number of samples for the reference image (default 1048576).");
+						.println("  -samples <integer>        number of samples for the reference image (default 16384).");
 				System.out
-						.println("  -sigma <double>           small step mutation size (default 0.01).");
-				System.out
-						.println("  -largestep <double>       large step probability (default 0.3).");
+						.println("  -repetitions <integer>    number of times an experiment has to be repeated with different seeds (default 10).");
 				System.out
 						.println("  -pbrt <filename>          filename of the pbrt executable (default pbrt)");
 				System.out
-						.println("  -output <filename>        output directory to write the results (default output/pssmltsettings)");
+						.println("  -output <filename>        output directory to write the results (default output/references)");
 				System.out.println();
 				System.out.println("example:");
 				System.out.println();
 				System.out
-						.println("  java -jar pbrt-tmlt-util.jar -reference -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -xresolution 240 scenes/kitchen scenes/mirror-balls -xresolution 128 scenes/mirror-ring scenes/caustic-glass");
+						.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/references -xresolution 240 scenes/kitchen scenes/mirror-balls -xresolution 128 scenes/mirror-ring scenes/caustic-glass");
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
@@ -72,10 +64,6 @@ public class ReferenceRenderer {
 				pbrt = CLI.nextString(token, arguments);
 			else if (token.equals("-output") || token.equals("--output"))
 				output = CLI.nextString(token, arguments);
-			else if (token.equals("-sigma") || token.equals("--sigma"))
-				sigma = CLI.nextDouble(token, arguments);
-			else if (token.equals("-largestep") || token.equals("--largestep"))
-				largeStep = CLI.nextDouble(token, arguments);
 			else if (token.equals("-dir") || token.equals("--dir")) {
 				String d = CLI.nextString(token, arguments);
 				if (d.endsWith("/"))
@@ -83,22 +71,39 @@ public class ReferenceRenderer {
 				else
 					directory = d + "/";
 			} else {
-				PSSMLTJob job = new PSSMLTJob(directory + token, xresolution,
-						yresolution, samples, sigma, largeStep);
-				renders.add(job);
+				for (double sigma = 0.04; sigma <= 1.0; sigma += 0.04) {
+					for (double largeStep = 0.04; largeStep <= 1.0; largeStep += 0.04) {
+						PSSMLTJob job = new PSSMLTJob(directory + token,
+								xresolution, yresolution, samples, sigma,
+								largeStep);
+						renders.add(job);
+					}
+				}
 			}
 		}
 
-		System.out.println("reference:");
-		System.out.format("  found %d render jobs ... \n", renders.size());
-		for (PSSMLTJob render : renders)
-			System.out.format("  %s ...\n", render.getOutputFilename()
-					+ ".pbrt");
+		System.out.println("pssmlt settings finder:");
+		System.out.format("  found %d render jobs ... \n", renders.size()
+				* repetitions);
+		// for (PSSMLTJob render : renders)
+		// System.out.format("  %s ...\n", render.getOutputFilename()
+		// + ".pbrt");
 
-		for (PSSMLTJob render : renders) {
-			System.out.format("started rendering \"%s\" ...\n",
-					render.getOutputFilename());
-			render.execute(directory + pbrt, directory + output, 0, 0);
+		Random random = new Random(0);
+		for (int i = 0; i < repetitions; ++i) {
+			for (PSSMLTJob render : renders) {
+				String outputFilename = render.getOutputFilename();
+
+				System.out.format("started rendering \"%s-%d\" ...\n",
+						outputFilename, i);
+
+				long startTime = System.currentTimeMillis();
+				render.execute(directory + pbrt, directory + output, i,
+						Math.abs(random.nextLong()));
+				long duration = System.currentTimeMillis() - startTime;
+				System.out.format("finished rendering \"%s-%d\" in %.1fs!\n",
+						outputFilename, i, duration * 0.001);
+			}
 		}
 	}
 }

@@ -11,6 +11,36 @@ import java.util.LinkedList;
 public class CLI {
 	/**
 	 * 
+	 * @param command
+	 * @return
+	 */
+	public static LinkedList<String> commandToList(String command) {
+		LinkedList<String> result = new LinkedList<String>();
+		for (String c : command.split(" +"))
+			result.add(c);
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param commands
+	 * @return
+	 */
+	public static String commandToString(LinkedList<String> commands) {
+		StringBuilder builder = new StringBuilder();
+		int i = 0;
+		for (String command : commands) {
+			builder.append(command);
+
+			if (i++ < commands.size() - 1)
+				builder.append(" ");
+		}
+
+		return builder.toString();
+	}
+
+	/**
+	 * 
 	 * @param name
 	 * @param arguments
 	 * @return

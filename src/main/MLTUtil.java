@@ -3,6 +3,7 @@ package main;
 import java.util.LinkedList;
 
 import utilities.PBRTCleaner;
+import utilities.PSSMLTSettingsFinder;
 import utilities.ReferenceRenderer;
 
 /**
@@ -25,8 +26,11 @@ public class MLTUtil {
 			System.out
 					.println("  -reference [<options>] <filename ... >  generates "
 							+ "the reference images for the specified files");
+			System.out
+					.println("  -pssmltsettings [<options>] <filename ... >  generates "
+							+ "the reference images for the specified files");
 		}
-		
+
 		final LinkedList<String> argumentList = new LinkedList<String>();
 		for (String argument : args)
 			argumentList.add(argument);
@@ -39,6 +43,9 @@ public class MLTUtil {
 			else if (current.equals("-reference")
 					|| current.equals("--reference"))
 				ReferenceRenderer.generateReferences(argumentList);
+			else if (current.equals("-pssmltsettings")
+					|| current.equals("--pssmltsettings"))
+				PSSMLTSettingsFinder.generateData(argumentList);
 		}
 	}
 }
