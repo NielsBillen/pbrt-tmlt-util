@@ -83,7 +83,7 @@ public class PSSMLTSettingsFinder {
 				else
 					directory = d + "/";
 			} else {
-				for (double sigma = 0.02; sigma <= 1.0; sigma += 0.02) {
+				for (double sigma = 0.02; sigma <= 0.64; sigma += 0.02) {
 					double s = Math.pow(sigma, 2);
 
 					for (double largeStep = 0.1; largeStep <=0.95; largeStep += 0.1) {
