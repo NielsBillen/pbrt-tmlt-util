@@ -12,7 +12,7 @@ public class DoublePrinter {
 	 * @return
 	 */
 	public static String toString(double value) {
-		String result = String.format("%.10f", value);
+		String result = String.format("%.8f", value);
 
 		if (result.matches("[0-9]*\\.[0-9]*[1-9]0+"))
 			result = result.replaceAll("0+$", "");

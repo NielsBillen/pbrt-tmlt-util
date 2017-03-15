@@ -60,9 +60,7 @@ public class PSSMLTSettingsFinder {
 						+ "output/pssmltsettings)");
 				System.out.println();
 				System.out.println("example:");
-				System.out.println();
-				System.out
-						.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -samples 128 -output output/reference -xresolution 240 scenes/mirror-balls scenes/kitchen -xresolution 128 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
+				System.out.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -samples 1024 -xresolution 120 -yresolution 64 -maxDepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
@@ -88,7 +86,7 @@ public class PSSMLTSettingsFinder {
 				for (double sigma = 0.02; sigma <= 1.0; sigma += 0.02) {
 					double s = Math.pow(sigma, 2);
 
-					for (double largeStep = 0.1; largeStep <= 1.0; largeStep += 0.1) {
+					for (double largeStep = 0.1; largeStep <=0.95; largeStep += 0.1) {
 						double t = Math.pow(largeStep, 2);
 
 						PSSMLTJob job = new PSSMLTJob(directory + token,
@@ -97,7 +95,6 @@ public class PSSMLTSettingsFinder {
 						renders.add(job);
 					}
 				}
-				System.out.println();
 			}
 		}
 
