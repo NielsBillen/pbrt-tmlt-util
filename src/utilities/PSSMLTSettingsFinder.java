@@ -62,7 +62,8 @@ public class PSSMLTSettingsFinder {
 						+ "-pbrt pbrt " + "-output output/reference "
 						+ "-xresolution 240 " + "scenes/kitchen "
 						+ "scenes/mirror-balls " + "-xresolution 128 "
-						+ "scenes/mirror-ring " + "scenes/caustic-glass "
+						+ "scenes/mirror-ring "
+						+ "scenes/caustic-glass -maxDepth 100"
 						+ "scenes/volume-caustic");
 				return;
 			} else if (token.equals("-xresolution")
