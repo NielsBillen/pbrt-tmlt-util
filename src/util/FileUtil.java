@@ -14,6 +14,27 @@ public class FileUtil {
 	/**
 	 * 
 	 * @param file
+	 * @param regex
+	 * @return
+	 */
+	public static File findFirst(File file, String regex) {
+		if (file == null)
+			throw new NullPointerException("the given file is null!");
+		if (file.isFile())
+			return file.getName().matches(regex) ? file : null;
+		else {
+			for (File f : file.listFiles()) {
+				File result = findFirst(f, regex);
+				if (result != null)
+					return result;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * @param file
 	 * @param parent
 	 * @return
 	 */

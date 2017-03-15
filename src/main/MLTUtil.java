@@ -3,6 +3,7 @@ package main;
 import java.util.LinkedList;
 
 import utilities.PBRTCleaner;
+import utilities.PSSMLTAnalysis;
 import utilities.PSSMLTSettingsFinder;
 import utilities.ReferenceRenderer;
 
@@ -46,6 +47,9 @@ public class MLTUtil {
 			else if (current.equals("-pssmltsettings")
 					|| current.equals("--pssmltsettings"))
 				PSSMLTSettingsFinder.generateData(argumentList);
+			else if (current.equals("-pssmltanalysis")
+					|| current.equals("--pssmltanalysis"))
+				PSSMLTAnalysis.analyze(argumentList);
 		}
 	}
 }
