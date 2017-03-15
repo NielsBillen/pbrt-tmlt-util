@@ -4,6 +4,7 @@ import java.io.File;
 
 import pbrt.PBRTProperty;
 import pbrt.PBRTScene;
+import util.DoublePrinter;
 
 /**
  * 
@@ -81,8 +82,10 @@ public class PSSMLTJob extends RenderJob {
 	@Override
 	public String getOutputFilename() {
 		return String.format(
-				"%s-pssmlt-mutations-%d-maxdepth-%d-sigma-%f-step-%f",
-				sceneName, mutationsPerPixel, maxDepth, sigma, largeStep);
+				"%s-pssmlt-mutations-%d-maxdepth-%d-sigma-%s-step-%s",
+				sceneName, mutationsPerPixel, maxDepth,
+				DoublePrinter.toString(sigma),
+				DoublePrinter.toString(largeStep));
 	}
 
 	/*

@@ -9,6 +9,11 @@ import util.CLI;
 import util.Settings;
 import core.PSSMLTJob;
 
+/**
+ * 
+ * @author niels
+ * 
+ */
 public class PSSMLTSettingsFinder {
 	/**
 	 * 
@@ -56,15 +61,8 @@ public class PSSMLTSettingsFinder {
 				System.out.println();
 				System.out.println("example:");
 				System.out.println();
-				System.out.println("  java -jar pbrt-tmlt-util.jar "
-						+ "-reference "
-						+ "-dir /home/niels/workspace/pbrt-tmlt "
-						+ "-pbrt pbrt " + "-output output/reference "
-						+ "-xresolution 240 " + "scenes/kitchen "
-						+ "scenes/mirror-balls " + "-xresolution 128 "
-						+ "scenes/mirror-ring "
-						+ "scenes/caustic-glass -maxDepth 100"
-						+ "scenes/volume-caustic");
+				System.out
+						.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -samples 128 -output output/reference -xresolution 240 scenes/mirror-balls scenes/kitchen -xresolution 128 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
@@ -87,23 +85,25 @@ public class PSSMLTSettingsFinder {
 				else
 					directory = d + "/";
 			} else {
-				for (double sigma = 0.04; sigma <= 1.0; sigma += 0.04) {
-					for (double largeStep = 0.04; largeStep <= 1.0; largeStep += 0.04) {
+				for (double sigma = 0.02; sigma <= 1.0; sigma += 0.02) {
+					double s = Math.pow(sigma, 2);
+
+					for (double largeStep = 0.1; largeStep <= 1.0; largeStep += 0.1) {
+						double t = Math.pow(largeStep, 2);
+
 						PSSMLTJob job = new PSSMLTJob(directory + token,
-								xresolution, yresolution, samples, sigma,
-								largeStep, maxDepth);
+								xresolution, yresolution, samples, s, t,
+								maxDepth);
 						renders.add(job);
 					}
 				}
+				System.out.println();
 			}
 		}
 
 		System.out.println("pssmlt settings finder:");
 		System.out.format("  found %d render jobs ... \n", renders.size()
 				* repetitions);
-		// for (PSSMLTJob render : renders)
-		// System.out.format("  %s ...\n", render.getOutputFilename()
-		// + ".pbrt");
 
 		Random random = new Random(0);
 		for (int i = 0; i < repetitions; ++i) {

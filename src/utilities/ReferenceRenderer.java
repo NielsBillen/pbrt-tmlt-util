@@ -60,17 +60,13 @@ public class ReferenceRenderer {
 						+ "directory to write the results (default "
 						+ "output/pssmltsettings)");
 				System.out.println();
-				System.out.println("example:");
+				System.out.println("examples:");
 				System.out.println();
-				System.out.println("  java -jar pbrt-tmlt-util.jar "
-						+ "-reference "
-						+ "-dir /home/niels/workspace/pbrt-tmlt "
-						+ "-pbrt pbrt " + "-output output/reference "
-						+ "-xresolution 240 " + "scenes/kitchen "
-						+ "scenes/mirror-balls " + "-xresolution 128 "
-						+ "scenes/mirror-ring "
-						+ "scenes/caustic-glass -maxDepth 100"
-						+ "scenes/volume-caustic");
+				System.out
+						.println("  java -jar pbrt-tmlt-util.jar -reference -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/reference -xresolution 240 scenes/mirror-balls scenes/kitchen -xresolution 128 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
+				System.out
+						.println("  java -jar pbrt-tmlt-util.jar -reference -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/reference -samples 1024 -xresolution 120 -yresolution 64 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
+
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
