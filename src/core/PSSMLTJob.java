@@ -16,6 +16,7 @@ public class PSSMLTJob extends RenderJob {
 	public final int mutationsPerPixel;
 	public final double sigma;
 	public final double largeStep;
+	public final int maxDepth;
 
 	/**
 	 * Creates a new PSSMLT render job.
@@ -31,9 +32,9 @@ public class PSSMLTJob extends RenderJob {
 	 *            large step mutation probability.
 	 */
 	public PSSMLTJob(String filename, int xResolution, int yResolution,
-			int mutationsPerPixel, double sigma, double largeStep) {
+			int mutationsPerPixel, double sigma, double largeStep, int maxDepth) {
 		this(new File(filename), xResolution, yResolution, mutationsPerPixel,
-				sigma, largeStep);
+				sigma, largeStep, maxDepth);
 
 	}
 
@@ -50,7 +51,7 @@ public class PSSMLTJob extends RenderJob {
 	 *            large step mutation probability.
 	 */
 	public PSSMLTJob(File directory, int xResolution, int yResolution,
-			int mutationsPerPixel, double sigma, double largeStep) {
+			int mutationsPerPixel, double sigma, double largeStep, int maxDepth) {
 		super(directory.getAbsoluteFile());
 
 		if (mutationsPerPixel <= 0)
@@ -61,12 +62,15 @@ public class PSSMLTJob extends RenderJob {
 		if (largeStep <= 0)
 			throw new IllegalArgumentException(
 					"the large step probability must be strictly larger than zero!");
-
+		if (maxDepth <= 0)
+			throw new IllegalArgumentException(
+					"the maximum depth must be larger than zero!");
 		this.mutationsPerPixel = mutationsPerPixel;
 		this.sigma = sigma;
 		this.largeStep = largeStep;
 		this.xResolution = xResolution;
 		this.yResolution = yResolution;
+		this.maxDepth = maxDepth;
 	}
 
 	/*
@@ -76,8 +80,9 @@ public class PSSMLTJob extends RenderJob {
 	 */
 	@Override
 	public String getOutputFilename() {
-		return String.format("%s-pssmlt-mutations-%d-sigma-%f-step-%f",
-				sceneName, mutationsPerPixel, sigma, largeStep);
+		return String.format(
+				"%s-pssmlt-mutations-%d-maxdepth-%d-sigma-%f-step-%f",
+				sceneName, mutationsPerPixel, maxDepth, sigma, largeStep);
 	}
 
 	/*
@@ -92,7 +97,7 @@ public class PSSMLTJob extends RenderJob {
 				.setFloatSetting("sigma", sigma)
 				.setFloatSetting("largestep", largeStep)
 				.setIntegerSetting("mutationsperpixel", mutationsPerPixel)
-				.setIntegerSetting("maxdepth", 16));
+				.setIntegerSetting("maxdepth", maxDepth));
 		scene.addChild(new PBRTProperty("Film").setValue("image")
 				.setIntegerSetting("xresolution", xResolution)
 				.setIntegerSetting("yresolution", yResolution)

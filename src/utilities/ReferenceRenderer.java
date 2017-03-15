@@ -23,6 +23,7 @@ public class ReferenceRenderer {
 		int xresolution = Settings.xResolution;
 		int yresolution = Settings.yResolution;
 		int samples = Settings.referenceSamples;
+		int maxDepth = 8;
 		double sigma = 0.01;
 		double largeStep = 0.3;
 		String pbrt = "pbrt";
@@ -36,29 +37,44 @@ public class ReferenceRenderer {
 			if (token.equals("-help") || token.equals("--help")) {
 				System.out
 						.println("usage: -reference [<options>] <scene directories>");
-				System.out
-						.println("  -help                     prints the manual for this command");
-				System.out
-						.println("  -dir <filename>           specifies the working directory. All other files will be found relative to this directory.");
-				System.out
-						.println("  -xresolution <integer>    horizontal resolution of the reference image (default 128).");
-				System.out
-						.println("  -yresolution <integer>    vertical resolution of the reference image (default 128).");
-				System.out
-						.println("  -samples <integer>        number of samples for the reference image (default 1048576).");
-				System.out
-						.println("  -sigma <double>           small step mutation size (default 0.01).");
-				System.out
-						.println("  -largestep <double>       large step probability (default 0.3).");
-				System.out
-						.println("  -pbrt <filename>          filename of the pbrt executable (default pbrt)");
-				System.out
-						.println("  -output <filename>        output directory to write the results (default output/pssmltsettings)");
+				System.out.println("  -help                     prints "
+						+ "the manual for this command");
+				System.out.println("  -dir <filename>           specifies the "
+						+ "working directory. All other files will be "
+						+ "found relative to this directory.");
+				System.out.println("  -xresolution <integer>    horizontal "
+						+ "resolution of the reference image (default 128).");
+				System.out.println("  -yresolution <integer>    vertical r"
+						+ "esolution of the reference image (default 128).");
+				System.out.println("  -samples <integer>        number of "
+						+ "samples for the reference image (default 1048576).");
+				System.out.println("  -sigma <double>           small step "
+						+ "mutation size (default 0.01).");
+				System.out.println("  -largestep <double>       large step "
+						+ "probability (default 0.3).");
+				System.out.println("  -pbrt <filename>          filename of "
+						+ "the pbrt executable (default pbrt)");
+				System.out.println("  -maxDepth <integer>       maximum "
+						+ "recursion depth (default 8)");
+				System.out.println("  -output <filename>        output "
+						+ "directory to write the results (default "
+						+ "output/pssmltsettings)");
 				System.out.println();
 				System.out.println("example:");
 				System.out.println();
 				System.out
-						.println("  java -jar pbrt-tmlt-util.jar -reference -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -xresolution 240 scenes/kitchen scenes/mirror-balls -xresolution 128 scenes/mirror-ring scenes/caustic-glass");
+						.println("  java -jar pbrt-tmlt-util.jar " +
+								"-reference " +
+								"-dir /home/niels/workspace/pbrt-tmlt " +
+								"-pbrt pbrt " +
+								"-output output/reference " +
+								"-xresolution 240 " +
+								"scenes/kitchen " +
+								"scenes/mirror-balls " +
+								"-xresolution 128 " +
+								"scenes/mirror-ring " +
+								"scenes/caustic-glass " +
+								"scenes/volume-caustic");
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
@@ -76,6 +92,8 @@ public class ReferenceRenderer {
 				sigma = CLI.nextDouble(token, arguments);
 			else if (token.equals("-largestep") || token.equals("--largestep"))
 				largeStep = CLI.nextDouble(token, arguments);
+			else if (token.equals("-maxDepth") || token.equals("--maxDepth"))
+				maxDepth = CLI.nextInteger(token, arguments);
 			else if (token.equals("-dir") || token.equals("--dir")) {
 				String d = CLI.nextString(token, arguments);
 				if (d.endsWith("/"))
@@ -84,7 +102,7 @@ public class ReferenceRenderer {
 					directory = d + "/";
 			} else {
 				PSSMLTJob job = new PSSMLTJob(directory + token, xresolution,
-						yresolution, samples, sigma, largeStep);
+						yresolution, samples, sigma, largeStep, maxDepth);
 				renders.add(job);
 			}
 		}
