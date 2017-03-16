@@ -39,7 +39,7 @@ public class BibTexCleaner {
 	public static String clean(File file) {
 		StringBuilder builder = new StringBuilder();
 		try {
-			List<BibTexEntry> entries = BibTexParser.parser(file);
+			List<BibTexEntry> entries = BibTexParser.parse(file);
 
 			for (int i = 0; i < entries.size(); ++i) {
 				BibTexEntry entry = entries.get(i);
