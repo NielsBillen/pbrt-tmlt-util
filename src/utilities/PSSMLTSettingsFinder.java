@@ -28,6 +28,7 @@ public class PSSMLTSettingsFinder {
 		String pbrt = "pbrt";
 		String output = "output/references";
 		String directory = "";
+		boolean quiet = true;
 
 		List<PSSMLTJob> renders = new ArrayList<PSSMLTJob>();
 		while (!arguments.isEmpty()) {
@@ -60,7 +61,8 @@ public class PSSMLTSettingsFinder {
 						+ "output/pssmltsettings)");
 				System.out.println();
 				System.out.println("example:");
-				System.out.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -samples 1024 -xresolution 120 -yresolution 64 -maxDepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
+				System.out
+						.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -samples 1024 -xresolution 120 -yresolution 64 -maxDepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
 				return;
 			} else if (token.equals("-xresolution")
 					|| token.equals("--xresolution"))
@@ -76,6 +78,8 @@ public class PSSMLTSettingsFinder {
 				output = CLI.nextString(token, arguments);
 			else if (token.equals("-maxDepth") || token.equals("--maxDepth"))
 				maxDepth = CLI.nextInteger(token, arguments);
+			else if (token.equals("-quiet") || token.equals("--quiet"))
+				quiet = CLI.nextBoolean(token, arguments);
 			else if (token.equals("-dir") || token.equals("--dir")) {
 				String d = CLI.nextString(token, arguments);
 				if (d.endsWith("/"))
@@ -86,7 +90,7 @@ public class PSSMLTSettingsFinder {
 				for (double sigma = 0.02; sigma <= 0.64; sigma += 0.02) {
 					double s = Math.pow(sigma, 2);
 
-					for (double largeStep = 0.1; largeStep <=0.95; largeStep += 0.1) {
+					for (double largeStep = 0.1; largeStep <= 0.95; largeStep += 0.1) {
 						double t = Math.pow(largeStep, 2);
 
 						PSSMLTJob job = new PSSMLTJob(directory + token,
@@ -112,7 +116,7 @@ public class PSSMLTSettingsFinder {
 
 				long startTime = System.currentTimeMillis();
 				render.execute(directory + pbrt, directory + output, i,
-						Math.abs(random.nextLong()));
+						Math.abs(random.nextLong()), quiet);
 				long duration = System.currentTimeMillis() - startTime;
 				System.out.format("finished rendering \"%s-%d\" in %.1fs!\n",
 						outputFilename, i, duration * 0.001);

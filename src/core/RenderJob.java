@@ -110,10 +110,13 @@ public abstract class RenderJob {
 	 *            rendered multiple times with different seeds.
 	 * @param seed
 	 *            a seed to use for rendering.
+	 * @param quiet
+	 *            whether the process should do no printouts about the progress.
 	 */
 	public void execute(String pbrt, String outputDirectory, int repetition,
-			long seed) {
-		execute(new File(pbrt), new File(outputDirectory), repetition, seed);
+			long seed, boolean quiet) {
+		execute(new File(pbrt), new File(outputDirectory), repetition, seed,
+				quiet);
 	}
 
 	/**
@@ -130,9 +133,12 @@ public abstract class RenderJob {
 	 *            rendered multiple times with different seeds.
 	 * @param seed
 	 *            a seed to use for rendering.
+	 * @param quiet
+	 *            whether the process should do no printouts about the progress.
 	 */
 	public void execute(final File pbrt, final File outputDirectory,
-			int repetition, long seed) throws NullPointerException {
+			int repetition, long seed, boolean quiet)
+			throws NullPointerException {
 		/***********************************************************************
 		 * Check whether the executable is valid
 		 **********************************************************************/
@@ -183,15 +189,24 @@ public abstract class RenderJob {
 		 * Execute the render
 		 **********************************************************************/
 
-		final String[] commands = new String[] { pbrt.getAbsolutePath(),
-				"--quiet", "--seed", "" + seed, job.getAbsolutePath() };
+		final String[] commands;
+		if (quiet)
+			commands = new String[] { pbrt.getAbsolutePath(), "--quiet",
+					"--seed", "" + seed, job.getAbsolutePath() };
+		else
+			commands = new String[] { pbrt.getAbsolutePath(), "--seed",
+					"" + seed, job.getAbsolutePath() };
 
 		try {
 			ProcessBuilder builder = new ProcessBuilder(commands);
 			builder = builder.directory(pbrt.getParentFile().toPath().toFile()
 					.getAbsoluteFile());
-			builder = builder.redirectError(stdout);
-			builder = builder.redirectOutput(stdout);
+
+			if (quiet) {
+				builder = builder.redirectError(stdout);
+				builder = builder.redirectOutput(stdout);
+			} else
+				builder.inheritIO();
 			Process process = builder.start();
 
 			int result = process.waitFor();
@@ -212,8 +227,6 @@ public abstract class RenderJob {
 		final File outputScene = new File(outputSceneDirectory,
 				outputName.concat(".pbrt"));
 		FileUtil.cp(job, outputScene);
-		// job.renameTo(outputScene);
-
 	}
 
 	/**
