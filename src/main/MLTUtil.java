@@ -1,7 +1,9 @@
 package main;
 
+import java.io.FileNotFoundException;
 import java.util.LinkedList;
 
+import utilities.BibTexCleaner;
 import utilities.PBRTCleaner;
 import utilities.PSSMLTAnalysis;
 import utilities.PSSMLTSettingsFinder;
@@ -17,8 +19,10 @@ public class MLTUtil {
 	/**
 	 * 
 	 * @param args
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws FileNotFoundException {
+
 		if (args.length == 0) {
 			System.out.println("usage: tmlt-util");
 			System.out
@@ -41,6 +45,8 @@ public class MLTUtil {
 
 			if (current.equals("-clean") || current.equals("--clean"))
 				PBRTCleaner.clean(argumentList);
+			else if (current.equals("-bibtexclean") || current.equals("--bibtexclean"))
+				BibTexCleaner.clean(argumentList);
 			else if (current.equals("-reference")
 					|| current.equals("--reference"))
 				ReferenceRenderer.generateReferences(argumentList);
