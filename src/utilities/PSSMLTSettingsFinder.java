@@ -22,7 +22,7 @@ public class PSSMLTSettingsFinder {
 	public static void generateData(LinkedList<String> arguments) {
 		int xresolution = Settings.xResolution;
 		int yresolution = Settings.yResolution;
-		int repetitions = 5;
+		int repetitions = 20;
 		int samples = 1024;
 		int maxDepth = 8;
 		String pbrt = "pbrt";
