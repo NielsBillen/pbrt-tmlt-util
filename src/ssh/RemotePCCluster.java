@@ -10,21 +10,22 @@ import java.util.List;
  */
 public class RemotePCCluster {
 	// baba bebe bibi bobo hakuna heverlee
-	// private static String[] names = { "aalst", "aarlen", "alken", "andenne",
-	// "asse", "aubel", "balen", "bastogne", "beringen", "bevekom",
-	// "bierbeek", "bilzen", "binche", "borgworm", "charleroi", "chimay",
-	// "ciney", "couvin", "diest", "dilbeek", "dinant", "doornik", "dour",
-	// "durbuy", "eupen", "fleurus", "geel", "genk", "gent", "hamme",
-	// "hastiere", "heers", "heist", "herent", "herstal", "hove", "ieper",
-	// "jemeppe", "kaprijke", "knokke", "komen", "kortrijk", "laarne",
-	// "lanaken", "lier", "lommel", "maaseik", "malle", "marche",
-	// "mechelen", "mol", "musson", "nijvel", "ninove", "olen",
-	// "overpelt", "peer", "riemst", "ronse", "schoten", "seraing", "spa",
-	// "stavelot", "temse", "terhulpen", "tienen", "torhout", "tremelo",
-	// "tubize", "turnhout", "verviers", "veurne", "vielsalm",
-	// "vilvoorde", "virton", "voeren", "waterloo", "waver", "yvoir",
-	// "zwalm" };
-	private static String[] names = { "dinant" };
+	private static String[] names = { "aalst", "aarlen", "alken", "andenne",
+			"asse", "aubel", "balen", "bastogne", "beringen", "bevekom",
+			"bierbeek", "bilzen", "binche", "borgworm", "charleroi", "chimay",
+			"ciney", "couvin", "diest", "dilbeek", "dinant", "doornik", "dour",
+			"durbuy", "eupen", "fleurus", "geel", "genk", "gent", "hamme",
+			"hastiere", "heers", "heist", "herent", "herstal", "hove", "ieper",
+			"jemeppe", "kaprijke", "knokke", "komen", "kortrijk", "laarne",
+			"lanaken", "lier", "lommel", "maaseik", "malle", "marche",
+			"mechelen", "mol", "musson", "nijvel", "ninove", "olen",
+			"overpelt", "peer", "riemst", "ronse", "schoten", "seraing", "spa",
+			"stavelot", "temse", "terhulpen", "tienen", "torhout", "tremelo",
+			"tubize", "turnhout", "verviers", "veurne", "vielsalm",
+			"vilvoorde", "virton", "voeren", "waterloo", "waver", "yvoir",
+			"zwalm" };
+
+	// private static String[] names = { "dinant" };
 
 	/**
 	 * 

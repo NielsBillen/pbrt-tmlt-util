@@ -19,7 +19,7 @@ import com.jcraft.jsch.Session;
  */
 public class RemotePC {
 	private static final JSch jsch = new JSch();
-	private final String hostName;
+	public final String hostName;
 	private final SSHUserInfo user;
 
 	/**
