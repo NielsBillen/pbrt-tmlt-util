@@ -212,6 +212,7 @@ public abstract class RenderJob {
 		final File outputScene = new File(outputSceneDirectory,
 				outputName.concat(".pbrt"));
 		FileUtil.cp(job, outputScene);
+		job.delete();
 		// job.renameTo(outputScene);
 
 	}
