@@ -249,12 +249,6 @@ public class PBRTProperty extends PBRTElement {
 		b.append("\n");
 	}
 
-	// public <T> T getSetting(Class<T> c, String name) {
-	// if (integers.getClass().getGenericInterfaces())
-	// return null;
-	//
-	// }
-
 	/**
 	 * Returns whether this property has a setting with the given name.
 	 * 
@@ -555,6 +549,21 @@ public class PBRTProperty extends PBRTElement {
 			throw new NullPointerException("the given name is null!");
 		removeSetting(name);
 		floatArray.put(name + " " + type, setting);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param setting
+	 * @return
+	 */
+	public PBRTProperty setFloatArraySetting(String name,
+			PBRTArray<Float> setting) {
+		if (name == null)
+			throw new NullPointerException("the given name is null!");
+		removeSetting(name);
+		floatArray.put(name, setting);
 		return this;
 	}
 

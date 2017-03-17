@@ -22,6 +22,14 @@ public class PBRTArray<T> extends PBRTElement {
 	}
 
 	/**
+	 * Creates a new empty array.
+	 */
+	public PBRTArray(T... t) {
+		for (T element : t)
+			add(element);
+	}
+
+	/**
 	 * Creates a new {@link PBRTArray} filled with the elements from the given
 	 * {@link Collection}.
 	 * 
