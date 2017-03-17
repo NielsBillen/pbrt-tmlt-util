@@ -22,7 +22,8 @@ public class PSSMLTSettingsFinder {
 	public static void generateData(LinkedList<String> arguments) {
 		int xresolution = Settings.xResolution;
 		int yresolution = Settings.yResolution;
-		int repetitions = 20;
+		int startRepetitions = 10;
+		int endRepetitions = 20;
 		int samples = 1024;
 		int maxDepth = 8;
 		String pbrt = "pbrt";
@@ -80,6 +81,14 @@ public class PSSMLTSettingsFinder {
 				maxDepth = CLI.nextInteger(token, arguments);
 			else if (token.equals("-quiet") || token.equals("--quiet"))
 				quiet = CLI.nextBoolean(token, arguments);
+			else if (token.equals("-repetitionstart")
+					|| token.equals("--repetitionstart"))
+				startRepetitions = CLI.nextInteger(token, arguments);
+			else if (token.equals("-repetitions")
+					|| token.equals("--repetitions")
+					|| token.equals("-repetitionend")
+					|| token.equals("--repetitionend"))
+				endRepetitions = CLI.nextInteger(token, arguments);
 			else if (token.equals("-dir") || token.equals("--dir")) {
 				String d = CLI.nextString(token, arguments);
 				if (d.endsWith("/"))
@@ -104,10 +113,10 @@ public class PSSMLTSettingsFinder {
 
 		System.out.println("pssmlt settings finder:");
 		System.out.format("  found %d render jobs ... \n", renders.size()
-				* repetitions);
+				* endRepetitions);
 
-		Random random = new Random(0);
-		for (int i = 0; i < repetitions; ++i) {
+		Random random = new Random();
+		for (int i = startRepetitions; i < endRepetitions; ++i) {
 			for (PSSMLTJob render : renders) {
 				String outputFilename = render.getOutputFilename();
 

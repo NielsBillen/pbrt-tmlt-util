@@ -3,6 +3,8 @@ package ssh;
 import java.util.ArrayList;
 import java.util.List;
 
+import computer.RemotePC;
+
 /**
  * 
  * @author Niels Billen

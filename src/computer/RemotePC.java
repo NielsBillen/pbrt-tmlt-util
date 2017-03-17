@@ -1,9 +1,11 @@
-package ssh;
+package computer;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+
+import ssh.SSHUserInfo;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
@@ -13,13 +15,17 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 /**
+ * Represents a computer which can be accessed remotely.
  * 
  * @author Niels Billen
  * @version 0.1
  */
 public class RemotePC {
-	private static final JSch jsch = new JSch();
 	public final String hostName;
+
+	/**
+	 * 
+	 */
 	private final SSHUserInfo user;
 
 	/**
@@ -39,6 +45,7 @@ public class RemotePC {
 	 * @throws JSchException
 	 */
 	private Session getSession() throws JSchException {
+		JSch jsch = new JSch();
 		Session result = jsch.getSession(user.username, hostName, 22);
 		result.setUserInfo(user);
 		result.connect(10000);

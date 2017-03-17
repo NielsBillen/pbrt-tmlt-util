@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
+import computer.RemotePC;
+
 import pbrt.PBRTArray;
 import pbrt.PBRTProperty;
 import pbrt.PBRTScene;
-import ssh.RemotePC;
 import ssh.RemotePCCluster;
 import ssh.SSHUserInfo;
 import core.Tile;

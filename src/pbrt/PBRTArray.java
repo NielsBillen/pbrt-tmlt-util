@@ -22,8 +22,10 @@ public class PBRTArray<T> extends PBRTElement {
 	}
 
 	/**
-	 * Creates a new empty array.
+	 * 
+	 * @param t
 	 */
+	@SafeVarargs
 	public PBRTArray(T... t) {
 		for (T element : t)
 			add(element);
