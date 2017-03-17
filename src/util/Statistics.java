@@ -1,5 +1,9 @@
 package util;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * 
  * @author Niels Billen
@@ -11,6 +15,8 @@ public class Statistics {
 	private double average = 0;
 	private double variance = 0;
 	private int n = 0;
+	private final List<Double> data = new ArrayList<Double>();
+	private boolean isDataDirty = false;
 
 	/**
 	 * 
@@ -56,6 +62,8 @@ public class Statistics {
 		variance = variance + (value - average) * (value - oldAverage);
 		minimum = Math.min(minimum, value);
 		maximum = Math.max(maximum, value);
+		data.add(value);
+		isDataDirty = true;
 	}
 
 	/**
@@ -72,6 +80,27 @@ public class Statistics {
 	 */
 	public double getMaximum() {
 		return maximum;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public double getMedian() {
+		if (data.isEmpty())
+			return Double.NaN;
+
+		if (isDataDirty) {
+			isDataDirty = false;
+			Collections.sort(data);
+		}
+
+		if (data.size() % 2 == 0) {
+			int offset = data.size() / 2;
+
+			return data.get(offset) * 0.5 + 0.5 * data.get(offset - 1);
+		} else
+			return data.get(data.size() / 2);
 	}
 
 	/**

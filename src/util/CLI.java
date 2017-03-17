@@ -87,6 +87,24 @@ public class CLI {
 	 * @param arguments
 	 * @return
 	 */
+	public static boolean nextBoolean(String name, LinkedList<String> arguments) {
+		String token = nextString(name, arguments);
+
+		try {
+			return Boolean.parseBoolean(token);
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException(
+					"could not parse a boolean from \"" + token
+							+ "\" for the boolean setting \"" + name + "\"");
+		}
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param arguments
+	 * @return
+	 */
 	public static double nextDouble(String name, LinkedList<String> arguments) {
 		String token = nextString(name, arguments);
 

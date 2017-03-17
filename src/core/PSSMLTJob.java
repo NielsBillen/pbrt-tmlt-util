@@ -98,7 +98,7 @@ public class PSSMLTJob extends RenderJob {
 		PBRTScene scene = new PBRTScene();
 		scene.addChild(new PBRTProperty("Integrator").setValue("pssmlt")
 				.setFloatSetting("sigma", sigma)
-				.setFloatSetting("largestep", largeStep)
+				.setFloatSetting("largestepprobability", largeStep)
 				.setIntegerSetting("mutationsperpixel", mutationsPerPixel)
 				.setIntegerSetting("maxdepth", maxDepth));
 		scene.addChild(new PBRTProperty("Film").setValue("image")

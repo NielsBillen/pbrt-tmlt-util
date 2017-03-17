@@ -29,6 +29,7 @@ public class ReferenceRenderer {
 		String pbrt = "pbrt";
 		String output = "output/pssmltsettings";
 		String directory = "";
+		boolean quiet = true;
 
 		List<PSSMLTJob> renders = new ArrayList<PSSMLTJob>();
 		while (!arguments.isEmpty()) {
@@ -39,6 +40,8 @@ public class ReferenceRenderer {
 						.println("usage: -reference [<options>] <scene directories>");
 				System.out.println("  -help                     prints "
 						+ "the manual for this command");
+				System.out.println("  -quiet                    whether "
+						+ "the no progress should be reported");
 				System.out.println("  -dir <filename>           specifies the "
 						+ "working directory. All other files will be "
 						+ "found relative to this directory.");
@@ -88,6 +91,8 @@ public class ReferenceRenderer {
 				largeStep = CLI.nextDouble(token, arguments);
 			else if (token.equals("-maxDepth") || token.equals("--maxDepth"))
 				maxDepth = CLI.nextInteger(token, arguments);
+			else if (token.equals("-quiet") || token.equals("--quiet"))
+				quiet = CLI.nextBoolean(token, arguments);
 			else if (token.equals("-dir") || token.equals("--dir")) {
 				String d = CLI.nextString(token, arguments);
 				if (d.endsWith("/"))
@@ -110,7 +115,7 @@ public class ReferenceRenderer {
 		for (PSSMLTJob render : renders) {
 			System.out.format("started rendering \"%s\" ...\n",
 					render.getOutputFilename());
-			render.execute(directory + pbrt, directory + output, 0, 0);
+			render.execute(directory + pbrt, directory + output, 0, 0, quiet);
 		}
 	}
 }

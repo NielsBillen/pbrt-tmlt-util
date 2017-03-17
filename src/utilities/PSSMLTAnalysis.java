@@ -6,7 +6,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -50,7 +49,6 @@ public class PSSMLTAnalysis {
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -138,7 +136,6 @@ public class PSSMLTAnalysis {
 		 **********************************************************************/
 
 		double minimumMSE = Double.POSITIVE_INFINITY;
-		File minimumFile = null;
 		TreeMap<Double, TreeMap<Double, Statistics>> dataMap = new TreeMap<Double, TreeMap<Double, Statistics>>();
 
 		for (File dataImageFile : data) {
@@ -147,10 +144,9 @@ public class PSSMLTAnalysis {
 			 *----------------------------------------------------------------*/
 			String dataImageFilename = dataImageFile.getName();
 			PFMImage dataImage = PFMReader.read(dataImageFile);
-			double mse = PFMUtil.MSE(dataImage, referenceImage).doubleValue();
+			double mse = PFMUtil.MSE(dataImage, referenceImage);
 
 			if (mse < minimumMSE) {
-				minimumFile = dataImageFile;
 				minimumMSE = mse;
 			}
 
@@ -160,16 +156,16 @@ public class PSSMLTAnalysis {
 
 			File dataPBRTFile = new File(dataFolder,
 					dataImageFilename.replaceAll(".pfm$", ".pbrt"));
-			if (!dataPBRTFile.exists())
+			if (!dataPBRTFile.exists()) {
+				System.err.format("missing .pbrt scene file for %s!",
+						dataPBRTFile.getAbsolutePath());
 				continue;
-//				throw new IllegalArgumentException(
-//						"missing .pbrt scene file for "
-//								+ dataImageFile.getAbsolutePath() + "!");
+			}
 			PBRTScene scene = PBRTParser.parse(dataPBRTFile);
 			double sigma = Double.parseDouble(scene
 					.findSetting("Integrator.sigma"));
 			double largestep = Double.parseDouble(scene
-					.findSetting("Integrator.largestep"));
+					.findSetting("Integrator.largestepprobability"));
 
 			System.out.format("%f %f : %f\n", sigma, largestep, mse);
 
@@ -197,10 +193,12 @@ public class PSSMLTAnalysis {
 			for (Entry<Double, TreeMap<Double, Statistics>> e1 : dataMap
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
-					writer.write(String.format("%f %f %f %f\n", e1.getKey(), e2
-							.getKey(), e2.getValue().getAverage(), e2
-							.getValue().getVariance()));
+					writer.write(String.format("%f %f %f %f %f\n", e1.getKey(),
+							e2.getKey(), e2.getValue().getMedian(), e2
+									.getValue().getAverage(), e2.getValue()
+									.getVariance()));
 				}
+				writer.write("\n");
 			}
 		}
 	}
