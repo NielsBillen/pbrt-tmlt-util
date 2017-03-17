@@ -20,11 +20,10 @@ import core.Tile;
  * @version 0.1
  */
 public class RemoteReferenceRenderer {
-	private static final String directory = "/home/niels/workspace/pbrt-tmlt/scenes";
 	private static final String[] scenes = new String[] { "mirror-balls",
 			"mirror-ring", "kitchen", "volume-caustic" };
 	private static final int resolution = 1024;
-	private static final int tileSize = 16;
+	private static final int tileSize = 4;
 	private static Random random = new Random();
 	private static final int samples = 1048576;
 
@@ -87,9 +86,15 @@ public class RemoteReferenceRenderer {
 				continue;
 			}
 
+			if (available.size() == 0 && busy.size() == 0) {
+				System.err.println("all pc's are busy!");
+				break;
+			}
+
 			// get a tile and a remote pc
-			final Tile tile = tiles.remove(tiles.size() - 1);
-			final RemotePC pc = available.remove(available.size() - 1);
+			final Tile tile = tiles.remove(random.nextInt(tiles.size()));
+			final RemotePC pc = available.remove(random.nextInt(available
+					.size()));
 			final long seed = 1 + random.nextInt(Integer.MAX_VALUE - 1);
 			busy.add(pc);
 
@@ -101,9 +106,13 @@ public class RemoteReferenceRenderer {
 				 * @see java.lang.Thread#run()
 				 */
 				public void run() {
-					execute(sceneName, pc, tile, seed);
+					boolean succes = execute(sceneName, pc, tile, seed);
 					lock.lock();
-					available.add(pc);
+					if (!succes) {
+						tiles.add(tile);
+						System.err.println("removed " + pc.hostName);
+					} else
+						available.add(pc);
 					busy.remove(pc);
 					lock.unlock();
 				};
@@ -113,6 +122,10 @@ public class RemoteReferenceRenderer {
 
 			// start the thread after the lock has been released.
 			thread.start();
+		}
+
+		while (busy.size() > 0) {
+			Thread.yield();
 		}
 	}
 
@@ -217,7 +230,12 @@ public class RemoteReferenceRenderer {
 			return false;
 		}
 
-		return true;
+		/***********************************************************************
+		 * 
+		 */
 
+		System.out.format("%s finished tile %s\n", pc.hostName, tile);
+
+		return true;
 	}
 }
