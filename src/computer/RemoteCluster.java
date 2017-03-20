@@ -1,17 +1,17 @@
-package ssh;
+package computer;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import computer.RemotePC;
-
 /**
  * 
- * @author Niels Billen
- * @version 0.1
+ * @author niels
+ * 
  */
-public class RemotePCCluster {
-	// baba bebe bibi bobo hakuna heverlee
+public class RemoteCluster {
+	/**
+	 * List of names of the pc's at the ground floor of Celestijnenlaan 200A.
+	 */
 	private static String[] names = { "aalst", "aarlen", "alken", "andenne",
 			"asse", "aubel", "balen", "bastogne", "beringen", "bevekom",
 			"bierbeek", "bilzen", "binche", "borgworm", "charleroi", "chimay",
@@ -27,21 +27,17 @@ public class RemotePCCluster {
 			"vilvoorde", "virton", "voeren", "waterloo", "waver", "yvoir",
 			"zwalm" };
 
-	// private static String[] names = { "dinant" };
+	public static List<RemoteComputer> getCluster(int nCores) {
+		RemoteAuthentication authentication = new RemoteAuthentication(
+				"u0093806");
+		List<RemoteComputer> result = new ArrayList<RemoteComputer>();
 
-	/**
-	 * 
-	 * @return
-	 */
-	public static List<RemotePC> getCluster(final SSHUserInfo info) {
-		List<RemotePC> result = new ArrayList<RemotePC>();
-
-		for (final String name : names) {
-			String host = name.concat(".cs.kotnet.kuleuven.be");
-			result.add(new RemotePC(host, info));
+		for (String name : names) {
+			RemoteComputer computer = new RemoteComputer(
+					name.concat(".cs.kotnet.kuleuven.be"), authentication,
+					nCores);
+			result.add(computer);
 		}
-
 		return result;
-
 	}
 }

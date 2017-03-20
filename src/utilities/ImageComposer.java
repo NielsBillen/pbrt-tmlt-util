@@ -68,6 +68,9 @@ public class ImageComposer {
 				Graphics g = image.getGraphics();
 				Pattern pattern = Pattern
 						.compile("tile.([0-9]+).([0-9]+).([0-9]+).([0-9]+)");
+
+				int count = 0;
+				System.out.format("found %d tiles\n", tiles.length);
 				for (File tile : tiles) {
 					try {
 						BufferedImage i = ImageIO.read(tile);
@@ -77,13 +80,14 @@ public class ImageComposer {
 							int x = Integer.parseInt(matcher.group(1));
 							int y = Integer.parseInt(matcher.group(2));
 							g.drawImage(i, x, y, null);
-							System.out.println(x + ", " + y);
+							++count;
 						}
 
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
+				System.out.format("%d had valid tile identifiers ...\n",count);
 
 				try {
 					ImageIO.write(image, "png", new File("merged.png"));

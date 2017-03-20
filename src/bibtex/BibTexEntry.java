@@ -34,7 +34,14 @@ import bibtex.types.BibTexTechReport;
  * @version 0.1
  */
 public abstract class BibTexEntry implements Iterable<Entry<String, String>> {
+	/**
+	 * Citation key for the bibtex entry.
+	 */
 	private String citationKey = "key";
+
+	/**
+	 * A sorted map containing all the keys and values in this entry.
+	 */
 	private final TreeMap<String, String> fields = new TreeMap<String, String>(
 			getKeyComparator());
 
@@ -62,27 +69,29 @@ public abstract class BibTexEntry implements Iterable<Entry<String, String>> {
 	 * @return
 	 */
 	public static BibTexEntry getEntry(String entryType, String citationKey) {
-		if (entryType.equals("article"))
+		String cleanedEntryType = entryType.trim().toLowerCase();
+
+		if (cleanedEntryType.equals("article"))
 			return new BibTexArticle(citationKey);
-		else if (entryType.equals("book"))
+		else if (cleanedEntryType.equals("book"))
 			return new BibTexBook(citationKey);
-		else if (entryType.equals("booklet"))
+		else if (cleanedEntryType.equals("booklet"))
 			return new BibTexBooklet(citationKey);
-		else if (entryType.equals("conference"))
+		else if (cleanedEntryType.equals("conference"))
 			return new BibTexConference(citationKey);
-		else if (entryType.equals("inbook"))
+		else if (cleanedEntryType.equals("inbook"))
 			return new BibTexInBook(citationKey);
-		else if (entryType.equals("incollection"))
+		else if (cleanedEntryType.equals("incollection"))
 			return new BibTexInCollection(citationKey);
-		else if (entryType.equals("inproceedings"))
+		else if (cleanedEntryType.equals("inproceedings"))
 			return new BibTexInProceedings(citationKey);
-		else if (entryType.equals("misc"))
+		else if (cleanedEntryType.equals("misc"))
 			return new BibTexMisc(citationKey);
-		else if (entryType.equals("phdthesis"))
+		else if (cleanedEntryType.equals("phdthesis"))
 			return new BibTexPhDThesis(citationKey);
-		else if (entryType.equals("proceedings"))
+		else if (cleanedEntryType.equals("proceedings"))
 			return new BibTexProceedings(citationKey);
-		else if (entryType.equals("techreport"))
+		else if (cleanedEntryType.equals("techreport"))
 			return new BibTexTechReport(citationKey);
 		else
 			throw new IllegalStateException("unknown bibtex entry type '"

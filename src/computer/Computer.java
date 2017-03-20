@@ -1,46 +1,104 @@
 package computer;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import task.RenderTaskInterface;
+import task.RenderTaskProgressListener;
 
 /**
- * Interface which should be implemented by all computers (either local or
- * remotely).
+ * Interface which should be implemented by computers which can perform
+ * rendering tasks.
  * 
  * @author Niels Billen
  * @version 0.1
  */
-public interface Computer {
+public abstract class Computer {
 	/**
-	 * Copies the file with the given from filename to the given destination,
-	 * making the required directories if necessary.
-	 * 
-	 * @param from
-	 * @param to
-	 * @throws NullPointerException
-	 * @throws IOException
+	 * The number of cores available to render on.
 	 */
-	public void copy(String from, String to) throws NullPointerException, IOException;
+	public final int nCores;
 
 	/**
-	 * Copies the file with the given from filename to the given destination,
-	 * making the required directories if necessary.
+	 * Pattern of the pbrt progress reporter.
 	 * 
-	 * @param from
-	 * @param to
-	 * @throws NullPointerException
-	 * @throws IOException 
+	 * (matches strings of the given format:
+	 * <code>Rendering: [++++       ] (0.4s|10.0s)</code>).
 	 */
-	public void copy(File from, File to) throws NullPointerException, IOException;
+	public static final Pattern progress = Pattern
+			.compile("Rendering: \\[(\\+*)( *)\\] *"
+					+ "\\(([0-9]+\\.[0-9])s\\|([0-9]+\\.[0-9])s\\)");
 
 	/**
-	 * Copies the file with the given filename to the given pc.
 	 * 
-	 * @param from
-	 * @param pc
-	 * @param to
-	 * @throws NullPointerException
 	 */
-	public void put(String from, Computer pc, String to)
-			throws NullPointerException;
+	public Computer() {
+		this(0);
+	}
+
+	/**
+	 * Creates a new computer.
+	 * 
+	 * @param nCores
+	 *            the number of available cores.
+	 */
+	public Computer(int nCores) {
+		this.nCores = nCores;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int nCores() {
+		return nCores;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public abstract String getName();
+
+	/**
+	 * 
+	 * @param task
+	 * @param resultDirectory
+	 * @param listener
+	 */
+	public abstract void execute(RenderTaskInterface task,
+			RenderTaskProgressListener listener) throws NullPointerException,
+			ExecutionException;
+
+	/**
+	 * 
+	 * @param line
+	 * @param previousPercentage
+	 * @param listener
+	 * @return
+	 */
+	protected double updateProgress(String line, double previousPercentage,
+			RenderTaskProgressListener listener) {
+		final Matcher matcher = progress.matcher(line);
+
+		if (matcher.find()) {
+			String plusses = matcher.group(1);
+			String spaces = matcher.group(2);
+			String elapsedTime = matcher.group(3);
+			String remainingTime = matcher.group(4);
+
+			double percentage = (double) plusses.length()
+					/ (double) (plusses.length() + spaces.length());
+
+			if (percentage > previousPercentage) {
+				double elapsed = Double.parseDouble(elapsedTime);
+				double remaining = Double.parseDouble(remainingTime);
+				listener.completion(percentage, elapsed, remaining);
+				return percentage;
+			}
+
+		}
+
+		return previousPercentage;
+	}
 }

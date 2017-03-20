@@ -16,7 +16,7 @@ EXECUTABLENAME = pbrt-tmlt-util.jar
 ENTRYPOINT = main.MLTUtil
 						
 # specify the packages where the code can be found
-PACKAGES = core main pbrt pfm util utilities
+PACKAGES = bibtex bibtex/types computer core main pbrt pfm shell ssh util utilities
 
 ################################################################################
 # Only the code above this line has to be edited if more classes are added     #

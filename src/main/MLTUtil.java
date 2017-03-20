@@ -24,7 +24,7 @@ public class MLTUtil {
 	 */
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
-		// RemoteReferenceRenderer.main(args);
+		// // RemoteReferenceRenderer.main(args);
 		if (args.length == 0) {
 			System.out.println("usage: tmlt-util");
 			System.out
