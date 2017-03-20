@@ -78,6 +78,17 @@ public class RenderTaskExecutionService {
 
 	/**
 	 * 
+	 * @return
+	 */
+	public List<Computer> getComputers() {
+		monitor.lock();
+		List<Computer> result = new ArrayList<Computer>();
+		monitor.unlock();
+		return result;
+	}
+
+	/**
+	 * 
 	 * @param listener
 	 */
 	public void addListener(RenderTaskExecutionServiceListener listener) {
@@ -92,6 +103,13 @@ public class RenderTaskExecutionService {
 	public int nbOfTasks() {
 		monitor.lock();
 		int result = tasks.size();
+		monitor.unlock();
+		return result;
+	}
+
+	public int finishedTasks() {
+		monitor.lock();
+		int result = finishedTasks.size();
 		monitor.unlock();
 		return result;
 	}
@@ -159,15 +177,18 @@ public class RenderTaskExecutionService {
 
 	/**
 	 * 
-	 * @throws InterruptedException
 	 */
-	public void awaitTermination() throws InterruptedException {
+	public void awaitTermination() {
 		monitor.lock();
 		boolean isStarted = started;
 		monitor.unlock();
 
 		if (isStarted)
-			executionThread.join();
+			try {
+				executionThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		else
 			throw new IllegalStateException("not started yet!");
 
@@ -218,8 +239,7 @@ public class RenderTaskExecutionService {
 		 * @param pc
 		 * @param task
 		 */
-		private void
-				schedule(final Computer pc, final RenderTaskInterface task) {
+		private void schedule(final Computer pc, final RenderTaskInterface task) {
 			Thread thread = new Thread() {
 				/*
 				 * (non-Javadoc)

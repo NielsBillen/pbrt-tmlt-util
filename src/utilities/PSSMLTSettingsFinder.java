@@ -1,135 +1,124 @@
 package utilities;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import util.CLI;
-import util.Settings;
-import core.PSSMLTJob;
+import task.PSSMLTRenderTask;
+import task.RenderTaskInterface;
+import cli.CommandLineArguments;
+import cli.CommandLineInterface;
+import distributed.Computer;
+import distributed.LocalComputer;
+import distributed.RemoteAuthentication;
+import distributed.RemoteCluster;
+import distributed.RemoteComputer;
+import distributed.RemoteExecutionMonitor;
+import distributed.RenderTaskExecutionService;
 
 /**
  * 
- * @author niels
- * 
+ * @author Niels Billen
+ * @version 0.1
  */
-public class PSSMLTSettingsFinder {
+public class PSSMLTSettingsFinder extends CommandLineInterface {
+	/**
+	 * 
+	 */
+	private final List<RenderTaskInterface> tasks = new ArrayList<RenderTaskInterface>();
+
+	/**
+	 * 
+	 */
+	public PSSMLTSettingsFinder() {
+		super("pssmltsettings", "[<options>] <scene directory...>");
+
+		addIntegerSetting("xresolution", "Sets the horizontal resolution.", 256);
+		addIntegerSetting("yresolution", "Sets the vertical resolution.", 256);
+		addIntegerSetting("maxdepth", "Sets the maximum recursion depth.", 8);
+		addIntegerSetting("repetitions",
+				"Number of times the experiments have to be repeated.", 100);
+		addIntegerSetting("samples",
+				"Number of samples to render each experiment with.", 1024);
+
+		addExample("-samples 1024 -xresolution 120 -yresolution 64 -maxdepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxdepth 100 scenes/volume-caustic");
+	}
+
 	/**
 	 * 
 	 * @param arguments
 	 */
-	public static void generateData(LinkedList<String> arguments) {
-		int xresolution = Settings.xResolution;
-		int yresolution = Settings.yResolution;
-		int startRepetitions = 10;
-		int endRepetitions = 20;
-		int samples = 1024;
-		int maxDepth = 8;
-		String pbrt = "pbrt";
-		String output = "output/references";
-		String directory = "";
-		boolean quiet = true;
+	public static void main(String[] arguments) {
+		new PSSMLTSettingsFinder().parse(arguments);
+	}
 
-		List<PSSMLTJob> renders = new ArrayList<PSSMLTJob>();
-		while (!arguments.isEmpty()) {
-			String token = arguments.removeFirst();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
+	 * cli.CommandLineArguments)
+	 */
+	@Override
+	public void handleAction(String token, CommandLineArguments arguments) {
+	}
 
-			if (token.equals("-help") || token.equals("--help")) {
-				System.out
-						.println("usage: -pssmltsettings [<options>] <scene directories>");
-				System.out.println("  -help                     prints "
-						+ "the manual for this command");
-				System.out.println("  -dir <filename>           specifies the "
-						+ "working directory. All other files will be "
-						+ "found relative to this directory.");
-				System.out.println("  -xresolution <integer>    horizontal "
-						+ "resolution of the reference image (default 128).");
-				System.out.println("  -yresolution <integer>    vertical r"
-						+ "esolution of the reference image (default 128).");
-				System.out.println("  -samples <integer>        number of "
-						+ "samples for the reference image (default 1024).");
-				System.out.println("  -sigma <double>           small step "
-						+ "mutation size (default 0.01).");
-				System.out.println("  -largestep <double>       large step "
-						+ "probability (default 0.3).");
-				System.out.println("  -pbrt <filename>          filename of "
-						+ "the pbrt executable (default pbrt)");
-				System.out.println("  -maxDepth <integer>       maximum "
-						+ "recursion depth (default 8)");
-				System.out.println("  -output <filename>        output "
-						+ "directory to write the results (default "
-						+ "output/pssmltsettings)");
-				System.out.println();
-				System.out.println("example:");
-				System.out
-						.println("  java -jar pbrt-tmlt-util.jar -pssmltsettings -dir /home/niels/workspace/pbrt-tmlt -pbrt pbrt -output output/pssmltsettings -samples 1024 -xresolution 120 -yresolution 64 -maxDepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxDepth 100 scenes/volume-caustic");
-				return;
-			} else if (token.equals("-xresolution")
-					|| token.equals("--xresolution"))
-				xresolution = CLI.nextInteger(token, arguments);
-			else if (token.equals("-yresolution")
-					|| token.equals("--yresolution"))
-				yresolution = CLI.nextInteger(token, arguments);
-			else if (token.equals("-samples") || token.equals("--samples"))
-				samples = CLI.nextInteger(token, arguments);
-			else if (token.equals("-pbrt") || token.equals("--pbrt"))
-				pbrt = CLI.nextString(token, arguments);
-			else if (token.equals("-output") || token.equals("--output"))
-				output = CLI.nextString(token, arguments);
-			else if (token.equals("-maxDepth") || token.equals("--maxDepth"))
-				maxDepth = CLI.nextInteger(token, arguments);
-			else if (token.equals("-quiet") || token.equals("--quiet"))
-				quiet = CLI.nextBoolean(token, arguments);
-			else if (token.equals("-repetitionstart")
-					|| token.equals("--repetitionstart"))
-				startRepetitions = CLI.nextInteger(token, arguments);
-			else if (token.equals("-repetitions")
-					|| token.equals("--repetitions")
-					|| token.equals("-repetitionend")
-					|| token.equals("--repetitionend"))
-				endRepetitions = CLI.nextInteger(token, arguments);
-			else if (token.equals("-dir") || token.equals("--dir")) {
-				String d = CLI.nextString(token, arguments);
-				if (d.endsWith("/"))
-					directory = d;
-				else
-					directory = d + "/";
-			} else {
-				for (double sigma = 0.02; sigma <= 0.64; sigma += 0.02) {
-					double s = Math.pow(sigma, 2);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#handleArgument(java.lang.String,
+	 * cli.CommandLineArguments)
+	 */
+	@Override
+	public void handleArgument(String argument, CommandLineArguments arguments) {
+		File pbrtDirectory = LocalComputer.get().pbrtDirectory;
+		File output = new File(pbrtDirectory, "output/pssmlt/" + argument);
 
-					for (double largeStep = 0.1; largeStep <= 0.95; largeStep += 0.1) {
-						double t = Math.pow(largeStep, 2);
+		Random random = new Random(0);
+		for (int sigma = 2; sigma <= 64; sigma += 2) {
+			double s = Math.pow(sigma * 0.01, 2);
+			for (int largeStep = 1; largeStep < 10; largeStep += 1) {
+				double t = Math.pow(largeStep * 0.1, 2);
 
-						PSSMLTJob job = new PSSMLTJob(directory + token,
-								xresolution, yresolution, samples, s, t,
-								maxDepth);
-						renders.add(job);
-					}
+				PSSMLTRenderTask task = new PSSMLTRenderTask(argument,
+						output.getAbsolutePath(), getIntegerSetting("samples"),
+						getIntegerSetting("xresolution"),
+						getIntegerSetting("yresolution"),
+						getIntegerSetting("maxdepth"), s, t, random.nextLong());
+
+				for (RenderTaskInterface repetition : task
+						.repeat(getIntegerSetting("repetitions"))) {
+					tasks.add(repetition);
 				}
 			}
 		}
+	}
 
-		System.out.println("pssmlt settings finder:");
-		System.out.format("  found %d render jobs ... \n", renders.size()
-				* endRepetitions);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#finished()
+	 */
+	@Override
+	public void finished() {
+		RenderTaskExecutionService service = new RenderTaskExecutionService();
 
-		Random random = new Random();
-		for (int i = startRepetitions; i < endRepetitions; ++i) {
-			for (PSSMLTJob render : renders) {
-				String outputFilename = render.getOutputFilename();
+		for (RenderTaskInterface task : tasks)
+			service.submit(task);
 
-				System.out.format("started rendering \"%s-%d\" ...\n",
-						outputFilename, i);
-
-				long startTime = System.currentTimeMillis();
-				render.execute(directory + pbrt, directory + output, i,
-						Math.abs(random.nextLong()), quiet);
-				long duration = System.currentTimeMillis() - startTime;
-				System.out.format("finished rendering \"%s-%d\" in %.1fs!\n",
-						outputFilename, i, duration * 0.001);
-			}
+		service.add(LocalComputer.get());
+		for (Computer computer : RemoteCluster.getCluster(4, true)) {
+			service.add(computer);
 		}
+
+		RemoteAuthentication remote = new RemoteAuthentication("niels", true);
+		RemoteComputer computer = new RemoteComputer("merida.cs.kuleuven.be",
+				remote);
+		service.add(computer);
+
+		service.addListener(new RemoteExecutionMonitor(service));
+
+		service.shutdown();
+		service.awaitTermination();
 	}
 }

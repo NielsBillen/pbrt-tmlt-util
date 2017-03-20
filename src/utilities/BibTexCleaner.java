@@ -23,10 +23,11 @@ public class BibTexCleaner extends CommandLineInterface {
 	 * 
 	 */
 	public BibTexCleaner() {
-		super("clean-bibtex");
+		super("clean-bibtex", "[<options>] <filename.bibtex...>");
 
 		addStringSetting("output", "Destination to write the cleaned file to",
 				"cleaned.bib");
+		addExample("clean-bibtex --output output.bib input.bib");
 	}
 
 	/**

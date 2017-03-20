@@ -32,19 +32,18 @@ public class LocalComputer extends Computer {
 	/**
 	 * The home directory of the local computer.
 	 */
-	protected final File homeDirectory = new File(
-			System.getProperty("user.home"));
+	public final File homeDirectory = new File(System.getProperty("user.home"));
 
 	/**
 	 * Location containing the pbrt repository.
 	 */
-	protected File pbrtDirectory = new File(homeDirectory,
+	public final File pbrtDirectory = new File(homeDirectory,
 			"workspace/pbrt-tmlt");
 
 	/**
 	 * Location containing the scenes.
 	 */
-	protected File scenesDirectory = new File(homeDirectory,
+	public final File scenesDirectory = new File(homeDirectory,
 			"workspace/pbrt-tmlt/scenes");
 
 	/**
@@ -79,45 +78,10 @@ public class LocalComputer extends Computer {
 
 	/**
 	 * 
-	 * @param pbrtDirectory
-	 * @throws NullPointerException
-	 */
-	public void setPBRTDirectory(File pbrtDirectory)
-			throws NullPointerException {
-		if (pbrtDirectory == null)
-			throw new NullPointerException("the given folder is null!");
-		if (!pbrtDirectory.exists())
-			throw new IllegalArgumentException(
-					"the given folder does not exist!");
-		if (!pbrtDirectory.isDirectory())
-			throw new IllegalArgumentException(
-					"the given folder is not a directory!");
-
-		// check whether the folder has the pbrt executable
-		File pbrt = new File(pbrtDirectory, "pbrt");
-		if (!pbrt.exists())
-			throw new IllegalArgumentException(
-					"the given folder does not contain a 'pbrt' "
-							+ "executable file!");
-		this.pbrtDirectory = pbrtDirectory;
-	}
-
-	/**
-	 * 
 	 * @return
 	 */
 	public File getPBRTDirectory() {
 		return pbrtDirectory;
-	}
-
-	/**
-	 * @param folder
-	 * @throws NullPointerException
-	 */
-	public void setScenesDirectory(File folder) throws NullPointerException {
-		if (folder == null)
-			throw new NullPointerException("the given folder is null!");
-		this.scenesDirectory = folder;
 	}
 
 	/**

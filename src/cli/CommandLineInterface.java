@@ -1,5 +1,7 @@
 package cli;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -14,6 +16,11 @@ public abstract class CommandLineInterface {
 	 * The command line name to call this command line interface.
 	 */
 	private final String command;
+
+	/**
+	 * 
+	 */
+	private final String usage;
 
 	/**
 	 * 
@@ -37,16 +44,35 @@ public abstract class CommandLineInterface {
 
 	/**
 	 * 
+	 */
+	private final List<String> examples = new ArrayList<String>();
+
+	/**
+	 * 
 	 * @param command
 	 * @throws NullPointerException
 	 */
-	public CommandLineInterface(String command) throws NullPointerException {
+	public CommandLineInterface(String command, String usage)
+			throws NullPointerException {
 		if (command == null)
 			throw new NullPointerException("the given command is null!");
+		if (usage == null)
+			throw new NullPointerException("the usage is null!");
 		this.command = command;
+		this.usage = usage;
 
 		// put in the help command
 		addAction("help", "Prints this help text.");
+	}
+
+	/**
+	 * 
+	 * @param example
+	 */
+	public void addExample(String example) {
+		if (example == null)
+			throw new NullPointerException("the given example is null!");
+		examples.add(example);
 	}
 
 	/**
@@ -157,7 +183,8 @@ public abstract class CommandLineInterface {
 	 * @return
 	 */
 	public String getHelp() {
-		StringBuilder builder = new StringBuilder(command);
+		StringBuilder builder = new StringBuilder("usage: ").append(command)
+				.append(" ").append(usage);
 
 		int longestKeyLength = 0;
 		int longestDescriptionLength = 0;
@@ -226,6 +253,15 @@ public abstract class CommandLineInterface {
 			builder.append(line);
 		}
 
+		// print usage examples
+		if (!examples.isEmpty()) {
+			if (examples.size() == 1)
+				builder.append("\n\nExample");
+			else
+				builder.append("\n\nExamples");
+			for (String example : examples)
+				builder.append("\n  ").append(example);
+		}
 		return builder.toString();
 	}
 
@@ -234,6 +270,10 @@ public abstract class CommandLineInterface {
 	 * @param arguments
 	 */
 	public void parse(CommandLineArguments arguments) {
+		if (arguments.nbOfArguments() == 0) {
+			System.out.println(getHelp());
+			return;
+		}
 		while (arguments.hasNext()) {
 			// get the current token
 			String token = arguments.next();

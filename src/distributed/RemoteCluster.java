@@ -27,9 +27,22 @@ public class RemoteCluster {
 			"vilvoorde", "virton", "voeren", "waterloo", "waver", "yvoir",
 			"zwalm" };
 
-	public static List<RemoteComputer> getCluster(int nCores) {
+	/**
+	 * Returns the computers at the ground floor of the computer science
+	 * department.
+	 * 
+	 * @param nCores
+	 *            the number of cores to use on the machines (0 = all).
+	 * @param consoleAuthentication
+	 *            whether to ask for login information via the console or a
+	 *            graphical user interface.
+	 * @return the computers at the ground floor of the computer science
+	 *         department.
+	 */
+	public static List<RemoteComputer> getCluster(int nCores,
+			boolean consoleAuthentication) {
 		RemoteAuthentication authentication = new RemoteAuthentication(
-				"u0093806");
+				"u0093806", consoleAuthentication);
 		List<RemoteComputer> result = new ArrayList<RemoteComputer>();
 
 		for (String name : names) {

@@ -109,13 +109,16 @@ public class FileUtil {
 	 * @return
 	 */
 	public static boolean mkdirs(File file) {
-		File absolute = file.getAbsoluteFile();
-		File parent = absolute.getParentFile();
-		if (!parent.exists()) {
-			if (!mkdirs(parent))
-				return false;
-		}
-		return absolute.mkdir();
+		if (file == null)
+			throw new NullPointerException("the given file is null!");
+		if (file.exists()) {
+			if (file.isDirectory())
+				return true;
+			else
+				throw new IllegalArgumentException(
+						"the given file exists but is not a directory!");
+		} else
+			return file.mkdirs();
 	}
 
 	/**

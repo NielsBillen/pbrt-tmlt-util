@@ -32,7 +32,7 @@ public class DistributedRendering {
 		final RenderTaskExecutionService service = new RenderTaskExecutionService();
 		for (RenderTaskInterface task : tasks)
 			service.submit(task);
-		for (RemoteComputer pc : RemoteCluster.getCluster(3))
+		for (RemoteComputer pc : RemoteCluster.getCluster(3, true))
 			service.add(pc);
 
 		// add the listener

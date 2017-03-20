@@ -21,7 +21,6 @@ import com.jcraft.jsch.SftpException;
  * 
  * @author Niels Billen
  * @version 0.1
- * 
  */
 public class RemoteComputer extends Computer {
 	private final String hostName;
@@ -43,6 +42,9 @@ public class RemoteComputer extends Computer {
 			throw new NullPointerException("the given authentication is null!");
 		this.hostName = hostName;
 		this.authentication = authentication;
+
+		authentication.promptPassword("Enter password for "
+				+ authentication.username + "@" + hostName + ":");
 	}
 
 	/**

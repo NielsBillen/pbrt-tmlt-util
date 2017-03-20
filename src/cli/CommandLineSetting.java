@@ -15,8 +15,9 @@ public class CommandLineSetting<T> {
 
 	/**
 	 * 
-	 * @param defaultValue
 	 * @param description
+	 * @param defaultValue
+	 * @throws NullPointerException
 	 */
 	public CommandLineSetting(String description, T defaultValue)
 			throws NullPointerException {

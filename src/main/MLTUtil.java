@@ -4,7 +4,8 @@ import java.io.IOException;
 
 import utilities.BibTexCleaner;
 import utilities.PBRTCleaner;
-
+import utilities.PSSMLTAnalysis;
+import utilities.PSSMLTSettingsFinder;
 import cli.CommandLineArguments;
 import cli.CommandLineInterface;
 
@@ -19,11 +20,16 @@ public class MLTUtil extends CommandLineInterface {
 	 * 
 	 */
 	public MLTUtil() {
-		super("mltutil");
+		super("mltutil", "--utilityname <options>");
 
 		addAction("clean-pbrt", "Starts the utility for cleaning scene files.");
 		addAction("clean-bibtex",
 				"Starts the utility for cleaning bibtex files.");
+		addAction("pssmltanalysis",
+				"Starts the utility for finding the optimal pssmlt settings.");
+		addAction("pssmltsettings",
+				"Executes the experiments to generate the data for"
+						+ " finding the optimal pssmlt settings.");
 	}
 
 	/**
@@ -35,43 +41,6 @@ public class MLTUtil extends CommandLineInterface {
 	public static void main(String[] args) {
 		MLTUtil util = new MLTUtil();
 		util.parse(args);
-
-		// // // RemoteReferenceRenderer.main(args);
-		// if (args.length == 0) {
-		// System.out.println("usage: tmlt-util");
-		// System.out
-		// .println("  -clean [<options>] <filename ...>       cleans "
-		// + "the formatting of given pbrt scene file.");
-		// System.out
-		// .println("  -reference [<options>] <filename ... >  generates "
-		// + "the reference images for the specified files");
-		// System.out
-		// .println("  -pssmltsettings [<options>] <filename ... >  generates "
-		// + "the reference images for the specified files");
-		// }
-		//
-		// final LinkedList<String> argumentList = new LinkedList<String>();
-		// for (String argument : args)
-		// argumentList.add(argument);
-		//
-		// while (!argumentList.isEmpty()) {
-		// String current = argumentList.poll();
-		//
-		// if (current.equals("-clean") || current.equals("--clean"))
-		// PBRTCleaner.clean(argumentList);
-		// else if (current.equals("-bibtexclean")
-		// || current.equals("--bibtexclean"))
-		// BibTexCleaner.clean(argumentList);
-		// else if (current.equals("-reference")
-		// || current.equals("--reference"))
-		// ReferenceRenderer.generateReferences(argumentList);
-		// else if (current.equals("-pssmltsettings")
-		// || current.equals("--pssmltsettings"))
-		// PSSMLTSettingsFinder.generateData(argumentList);
-		// else if (current.equals("-pssmltanalysis")
-		// || current.equals("--pssmltanalysis"))
-		// PSSMLTAnalysis.analyze(argumentList);
-		// }
 	}
 
 	/*
@@ -102,12 +71,13 @@ public class MLTUtil extends CommandLineInterface {
 	 */
 	@Override
 	public void handleAction(String token, CommandLineArguments arguments) {
-		if (token.equals("clean-pbrt")) {
-			PBRTCleaner.clean(arguments);
-
-			BibTexCleaner.clean(arguments);
-		} else if (token.equals("clean-bibtex")) {
-			BibTexCleaner.clean(arguments);
-		}
+		if (token.equals("clean-pbrt"))
+			PBRTCleaner.main(arguments.subArray());
+		else if (token.equals("clean-bibtex"))
+			BibTexCleaner.main(arguments.subArray());
+		else if (token.equals("pssmltanalysis"))
+			PSSMLTAnalysis.main(arguments.subArray());
+		else if (token.equals("pssmltsettings"))
+			PSSMLTSettingsFinder.main(arguments.subArray());
 	}
 }

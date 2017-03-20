@@ -1,5 +1,9 @@
 package distributed;
 
+import java.io.BufferedReader;
+import java.io.Console;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JLabel;
@@ -8,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
 import com.jcraft.jsch.UserInfo;
+import com.sun.xml.internal.ws.util.NoCloseInputStream;
 
 /**
  * Provides information to remotely access a computer.
@@ -36,6 +41,11 @@ public class RemoteAuthentication implements UserInfo {
 	/**
 	 * 
 	 */
+	private final boolean useConsole;
+
+	/**
+	 * 
+	 */
 	private ReentrantLock monitor = new ReentrantLock();
 
 	/**
@@ -43,18 +53,22 @@ public class RemoteAuthentication implements UserInfo {
 	 * 
 	 * @param username
 	 *            the name of the user.
+	 * @param useConsole
+	 *            whether to use the console for showing messages and requesting
+	 *            input.
 	 * @throws NullPointerException
 	 *             when the given username is null.
 	 * @throws IllegalArgumentException
 	 *             when the given username is empty.
 	 */
-	public RemoteAuthentication(String username) throws NullPointerException,
-			IllegalArgumentException {
+	public RemoteAuthentication(String username, boolean useConsole)
+			throws NullPointerException, IllegalArgumentException {
 		if (username == null)
 			throw new NullPointerException("the given username is null!");
 		if (username.isEmpty())
 			throw new IllegalArgumentException("the given username is empty!");
 		this.username = username;
+		this.useConsole = useConsole;
 	}
 
 	/*
@@ -87,7 +101,7 @@ public class RemoteAuthentication implements UserInfo {
 		monitor.lock();
 		try {
 			if (passphrase == null) {
-				passphrase = JOptionPane.showInputDialog(message);
+				passphrase = showPasswordDialog(message);
 				return passphrase != null;
 			} else
 				return false;
@@ -157,18 +171,39 @@ public class RemoteAuthentication implements UserInfo {
 	 * @return
 	 */
 	private String showPasswordDialog(String message) {
-		JPanel panel = new JPanel();
-		JLabel label = new JLabel("Enter a password:");
-		JPasswordField pass = new JPasswordField(30);
-		panel.add(label);
-		panel.add(pass);
-		String[] options = new String[] { "OK", "Cancel" };
-		int option = JOptionPane.showOptionDialog(null, panel, message,
-				JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null,
-				options, options[0]);
-		if (option == 0)
-			return new String(pass.getPassword());
-		return null;
-	}
+		if (useConsole) {
+			Console console = System.console();
+			if (console == null) {
+				try (NoCloseInputStream stream = new NoCloseInputStream(
+						System.in);
+						InputStreamReader reader = new InputStreamReader(stream);
+						BufferedReader r = new BufferedReader(reader)) {
 
+					System.out.println(message);
+					System.out.print(">");
+					return r.readLine();
+				} catch (IOException e) {
+					e.printStackTrace();
+					return null;
+				}
+			} else {
+				System.out.println(message);
+				return new String(console.readPassword());
+			}
+
+		} else {
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel("Enter a password:");
+			JPasswordField pass = new JPasswordField(30);
+			panel.add(label);
+			panel.add(pass);
+			String[] options = new String[] { "OK", "Cancel" };
+			int option = JOptionPane.showOptionDialog(null, panel, message,
+					JOptionPane.NO_OPTION, JOptionPane.PLAIN_MESSAGE, null,
+					options, options[0]);
+			if (option == 0)
+				return new String(pass.getPassword());
+			return null;
+		}
+	}
 }

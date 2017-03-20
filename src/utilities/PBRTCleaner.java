@@ -18,7 +18,7 @@ public class PBRTCleaner extends CommandLineInterface {
 	 * 
 	 */
 	public PBRTCleaner() {
-		super("clean-pbrt");
+		super("clean-pbrt", "[<options>] <filename.pbrt...>");
 
 		addStringSetting("output", "Destination to write the cleaned file to",
 				"cleaned.pbrt");

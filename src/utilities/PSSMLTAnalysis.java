@@ -30,12 +30,19 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 	 * 
 	 */
 	public PSSMLTAnalysis() {
-		super("pssmltanalysis");
+		super("pssmltanalysis", "<reference directory> <data directory>");
+
+		addStringSetting("directory",
+				"Sets the relative directory to the given value.",
+				new File(".").getAbsoluteFile().getParent() + "/");
+		addStringSetting("output",
+				"Sets the output directory to the given value", new File(
+						"pssmltsettings").getAbsolutePath());
 	}
 
 	/**
 	 * 
-	 * @param args
+	 * @param arguments
 	 */
 	public static void main(String[] arguments) {
 		new PSSMLTAnalysis().parse(arguments);
@@ -89,16 +96,28 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 	 * @param data
 	 * @throws IOException
 	 */
-	private static void analyse(String reference, String data)
-			throws IOException {
+	private void analyse(String reference, String data) throws IOException {
 		if (reference == null)
 			throw new NullPointerException(
 					"the given reference folder filename is null!");
 		if (data == null)
 			throw new NullPointerException(
 					"the given data folder filename is null!");
-		analyse(new File(reference), new File(data));
 
+		String directory = getStringSetting("directory").replaceAll("/+$", "");
+
+		File referenceFile;
+		if (reference.startsWith("/"))
+			referenceFile = new File(reference);
+		else
+			referenceFile = new File(directory + "/" + reference);
+		File dataFile;
+		if (data.startsWith("/"))
+			dataFile = new File(data);
+		else
+			dataFile = new File(directory + "/" + data);
+
+		analyse(referenceFile, dataFile);
 	}
 
 	/**
@@ -107,7 +126,7 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 	 * @param dataFolder
 	 * @throws IOException
 	 */
-	private static void analyse(File referenceFolder, File dataFolder)
+	private void analyse(File referenceFolder, File dataFolder)
 			throws IOException {
 		if (referenceFolder == null)
 			throw new NullPointerException("the given reference file is null!");
@@ -167,20 +186,16 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 		 * Find the best settings
 		 **********************************************************************/
 
-		double minimumMSE = Double.POSITIVE_INFINITY;
 		TreeMap<Double, TreeMap<Double, Statistics>> dataMap = new TreeMap<Double, TreeMap<Double, Statistics>>();
 
 		for (File dataImageFile : data) {
 			/*------------------------------------------------------------------
 			 * Calculate the mean squared error
 			 *----------------------------------------------------------------*/
+
 			String dataImageFilename = dataImageFile.getName();
 			PFMImage dataImage = PFMReader.read(dataImageFile);
 			double mse = PFMUtil.MSE(dataImage, referenceImage);
-
-			if (mse < minimumMSE) {
-				minimumMSE = mse;
-			}
 
 			/*------------------------------------------------------------------
 			 * Find the relevant parameter in the scene file
@@ -193,6 +208,7 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 						dataPBRTFile.getAbsolutePath());
 				continue;
 			}
+
 			PBRTScene scene = PBRTParser.parse(dataPBRTFile);
 			double sigma = Double.parseDouble(scene
 					.findSetting("Integrator.sigma"));
@@ -220,18 +236,74 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 			statistics.add(mse);
 		}
 
-		File file = new File(sceneName + "-surface.txt");
+		/***********************************************************************
+		 * Write the data and find the optimal settings
+		 **********************************************************************/
+
+		double bestSigma = 0;
+		double bestLargeStep = 0;
+		double bestAverage = Double.POSITIVE_INFINITY;
+		double minimum = Double.POSITIVE_INFINITY;
+		double maximum = Double.NEGATIVE_INFINITY;
+
+		String outputDirectoryName = String.format("%s/%s",
+				getStringSetting("output"), sceneName);
+		File outputDirectory = new File(outputDirectoryName);
+		FileUtil.mkdirs(outputDirectory);
+		File file = new File(outputDirectory, sceneName + ".txt");
+
 		try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
 			for (Entry<Double, TreeMap<Double, Statistics>> e1 : dataMap
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
-					writer.write(String.format("%.10f %.10f %.10f %10f %.10f %d\n", e1
-							.getKey(), e2.getKey(), e2.getValue().getAverage(),
-							e2.getValue().getMedian(), e2.getValue()
-									.getVariance(), e2.getValue().size()));
+					double sigma = e1.getKey();
+					double largeStep = e2.getKey();
+					Statistics statistic = e2.getValue();
+					double average = statistic.getAverage();
+					double median = statistic.getMedian();
+					double variance = statistic.getVariance();
+					int size = statistic.size();
+
+					writer.write(String.format(
+							"%.10f %.10f %.10f %10f %.10f %d\n", sigma,
+							largeStep, average, median, variance, size));
+
+					if (average < bestAverage) {
+						bestAverage = average;
+						bestSigma = sigma;
+						bestLargeStep = largeStep;
+					}
+					if (average < minimum)
+						minimum = average;
+					if (average > maximum)
+						maximum = average;
+
 				}
 				writer.write("\n");
 			}
+		}
+
+		System.out.format("[ PSSMLT Analysis %s ] \n", sceneName);
+		System.out.format("sigma:                  %.10f\n", bestSigma);
+		System.out.format("large step probability: %.10f\n", bestLargeStep);
+
+		/***********************************************************************
+		 * Generate tikz plot data
+		 **********************************************************************/
+
+		File tex = new File(outputDirectory, sceneName + ".tex");
+		try (BufferedWriter writer = Files.newBufferedWriter(tex.toPath())) {
+			writer.write("\\documentclass{article}\n");
+			writer.write("\\usepackage{tikz}\n");
+			writer.write("\\usepackage{pgfplots}\n");
+			writer.write("\\begin{document}\n");
+			writer.write("\\\tbegin{tikzpicture}\n");
+			writer.write("\\\t\tbegin{axis}view={-20}{20}, grid=both]\n");
+			writer.write("\\\t\t\t\\addplot3[surf] file { " + sceneName
+					+ ".txt };\n");
+			writer.write("\\\t\tend{axis}\n");
+			writer.write("\\\tend{tikzpicture}\n");
+			writer.write("\\end{document}\n");
 		}
 	}
 }
