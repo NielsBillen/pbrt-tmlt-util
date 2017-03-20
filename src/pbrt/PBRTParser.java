@@ -2,7 +2,8 @@ package pbrt;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -61,8 +62,9 @@ public class PBRTParser {
 	 * 
 	 * @param filename
 	 * @return
+	 * @throws IOException 
 	 */
-	public static PBRTScene parse(String filename) {
+	public static PBRTScene parse(String filename) throws IOException {
 		return parse(new File(filename));
 	}
 
@@ -70,8 +72,9 @@ public class PBRTParser {
 	 * 
 	 * @param file
 	 * @return
+	 * @throws IOException 
 	 */
-	public static PBRTScene parse(File file) {
+	public static PBRTScene parse(File file) throws IOException {
 		PBRTParser parser = new PBRTParser(file);
 		PBRTSceneHandler handler = new PBRTSceneHandler();
 		parser.parse(handler);
@@ -82,16 +85,12 @@ public class PBRTParser {
 	/**
 	 * 
 	 * @param handler
+	 * @throws IOException
 	 */
-	public void parse(PBRTParseHandler handler) {
+	public void parse(PBRTParseHandler handler) throws IOException {
 		StringBuilder b = new StringBuilder();
 
-		FileReader reader;
-		BufferedReader r;
-
-		try {
-			reader = new FileReader(file);
-			r = new BufferedReader(reader);
+		try (BufferedReader r = Files.newBufferedReader(file.toPath())) {
 			String line;
 
 			while ((line = r.readLine()) != null) {
@@ -104,10 +103,6 @@ public class PBRTParser {
 					continue;
 				b.append(line + " ");
 			}
-
-			r.close();
-			reader.close();
-		} catch (Exception e) {
 		}
 
 		String fileString = b.toString().replaceAll("\t", " ");

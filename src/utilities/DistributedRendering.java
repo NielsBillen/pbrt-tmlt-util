@@ -2,15 +2,14 @@ package utilities;
 
 import java.util.List;
 
-import task.PSSMLTRenderTask;
+import task.BDPTRenderTask;
 import task.RenderTaskInterface;
 
-import computer.Computer;
-import computer.RemoteAuthentication;
-import computer.RemoteCluster;
-import computer.RemoteComputer;
-import computer.RenderTaskExecutionService;
-import computer.RenderTaskExecutionServiceListener;
+import distributed.Computer;
+import distributed.RemoteCluster;
+import distributed.RemoteComputer;
+import distributed.RenderTaskExecutionService;
+import distributed.RenderTaskExecutionServiceListener;
 
 /**
  * 
@@ -18,14 +17,16 @@ import computer.RenderTaskExecutionServiceListener;
  * @version 0.1
  */
 public class DistributedRendering {
+	/**
+	 * 
+	 * @param args
+	 * @throws InterruptedException
+	 */
 	public static void main(String[] args) throws InterruptedException {
-		RemoteAuthentication niels = new RemoteAuthentication("niels");
-		RemoteComputer anna = new RemoteComputer("anna.cs.kuleuven.be", niels);
+		BDPTRenderTask mirrorBalls = new BDPTRenderTask("mirror-balls",
+				"/tmp/mirror-balls", 1024 * 1024, 512, 512, 8, 0);
 
-		PSSMLTRenderTask mirrorBalls = new PSSMLTRenderTask("mirror-balls",
-				"/tmp/mirror-balls", 1024, 480, 256, 8, 0.01, 0.03, 0);
-
-		List<RenderTaskInterface> tasks = mirrorBalls.repeat(80);
+		List<RenderTaskInterface> tasks = mirrorBalls.getTiles(8);
 
 		// build the execution service
 		final RenderTaskExecutionService service = new RenderTaskExecutionService();
@@ -33,7 +34,6 @@ public class DistributedRendering {
 			service.submit(task);
 		for (RemoteComputer pc : RemoteCluster.getCluster(3))
 			service.add(pc);
-		service.add(anna);
 
 		// add the listener
 		RenderTaskExecutionServiceListener listener = new RenderTaskExecutionServiceListener() {
@@ -101,6 +101,6 @@ public class DistributedRendering {
 
 		service.shutdown();
 		service.awaitTermination();
-		System.out.println("finished!");
+		System.out.println("finished rendering!");
 	}
 }

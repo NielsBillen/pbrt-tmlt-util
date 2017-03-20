@@ -6,7 +6,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -17,6 +16,8 @@ import pfm.PFMReader;
 import pfm.PFMUtil;
 import util.FileUtil;
 import util.Statistics;
+import cli.CommandLineArguments;
+import cli.CommandLineInterface;
 
 /**
  * 
@@ -24,31 +25,62 @@ import util.Statistics;
  * @version 0.1
  * 
  */
-public class PSSMLTAnalysis {
+public class PSSMLTAnalysis extends CommandLineInterface {
+	/**
+	 * 
+	 */
+	public PSSMLTAnalysis() {
+		super("pssmltanalysis");
+	}
+
 	/**
 	 * 
 	 * @param args
 	 */
-	public static void analyze(LinkedList<String> arguments) {
-		while (!arguments.isEmpty()) {
-			String token = arguments.removeFirst();
+	public static void main(String[] arguments) {
+		new PSSMLTAnalysis().parse(arguments);
+	}
 
-			if (token.equals("-help") || token.equals("--help")) {
-				System.out
-						.println("usage: -pssmltanalysis <reference folder> <data folder> ...");
-				return;
-			} else if (arguments.isEmpty()) {
-				throw new IllegalStateException(
-						"no data folder specified for the given reference folder \""
-								+ token + "\"!");
-			} else {
-				try {
-					analyse(token, arguments.removeFirst());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void analyse(CommandLineArguments arguments) {
+		new PSSMLTAnalysis().parse(arguments);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
+	 * cli.CommandLineArguments)
+	 */
+	@Override
+	public void handleAction(String token, CommandLineArguments arguments) {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#handleArgument(java.lang.String,
+	 * cli.CommandLineArguments)
+	 */
+	@Override
+	public void handleArgument(String argument, CommandLineArguments arguments) {
+		try {
+			analyse(argument, arguments.next());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see cli.CommandLineInterface#parsed()
+	 */
+	@Override
+	public void finished() {
 	}
 
 	/**
@@ -193,10 +225,10 @@ public class PSSMLTAnalysis {
 			for (Entry<Double, TreeMap<Double, Statistics>> e1 : dataMap
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
-					writer.write(String.format("%f %f %f %f %f\n", e1.getKey(),
-							e2.getKey(), e2.getValue().getMedian(), e2
-									.getValue().getAverage(), e2.getValue()
-									.getVariance()));
+					writer.write(String.format("%.10f %.10f %.10f %10f %.10f %d\n", e1
+							.getKey(), e2.getKey(), e2.getValue().getAverage(),
+							e2.getValue().getMedian(), e2.getValue()
+									.getVariance(), e2.getValue().size()));
 				}
 				writer.write("\n");
 			}

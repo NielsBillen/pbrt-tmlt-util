@@ -20,6 +20,10 @@ import util.CLI;
  * 
  */
 public class ImageComposer {
+	/**
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		LinkedList<String> arguments = new LinkedList<String>();
 		arguments.add("mirror-balls");
@@ -87,7 +91,7 @@ public class ImageComposer {
 						e.printStackTrace();
 					}
 				}
-				System.out.format("%d had valid tile identifiers ...\n",count);
+				System.out.format("%d had valid tile identifiers ...\n", count);
 
 				try {
 					ImageIO.write(image, "png", new File("merged.png"));
