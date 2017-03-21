@@ -3,9 +3,10 @@ package util;
 import java.util.TreeMap;
 
 /**
+ * A utility which allows to print tabular data.
  * 
- * @author niels
- * 
+ * @author Niels Billen
+ * @version 1.0
  */
 public class TablePrinter {
 	private TreeMap<Integer, TreeMap<Integer, String>> table = new TreeMap<Integer, TreeMap<Integer, String>>();
@@ -13,16 +14,13 @@ public class TablePrinter {
 	private final String seperator;
 
 	private final String headSeperator;
-	private final boolean seperateHead;
-
 	private final String tailSeperator;
-	private final boolean seperateTail;
 
 	/**
-	 * 
+	 * Creates a new table printer.
 	 */
 	public TablePrinter() {
-		this("|", "|", true, "|", true);
+		this("|", "|", "|");
 	}
 
 	/**
@@ -30,7 +28,7 @@ public class TablePrinter {
 	 * @param seperator
 	 */
 	public TablePrinter(String seperator) {
-		this(seperator, seperator, true, seperator, true);
+		this(seperator, seperator, seperator);
 	}
 
 	/**
@@ -38,13 +36,10 @@ public class TablePrinter {
 	 * @param seperator
 	 */
 	public TablePrinter(String seperator, String headSeperator,
-			boolean seperateHead, String tailSeperator, boolean seperateTail) {
+			String tailSeperator) {
 		this.seperator = seperator;
 		this.headSeperator = headSeperator;
-		this.seperateHead = seperateHead;
-
 		this.tailSeperator = tailSeperator;
-		this.seperateTail = seperateTail;
 
 	}
 
@@ -124,9 +119,7 @@ public class TablePrinter {
 	 * @return
 	 */
 	private String appendToLength(String string, int length) {
-		while (string.length() < length)
-			string = string.concat(" ");
-		return string;
+		return String.format("%-" + length + "%s", string);
 	}
 
 	/*
@@ -146,16 +139,17 @@ public class TablePrinter {
 
 		for (int row = 0; row < nbOfRows; ++row) {
 			for (int column = 0; column < nbOfColumns; ++column) {
-				if (column > 0 && column < nbOfColumns)
+				if (column == 0) {
+					if (headSeperator != null)
+						builder.append(headSeperator);
+				} else if (column < nbOfColumns)
 					builder.append(seperator);
-				else if (seperateHead)
-					builder.append(headSeperator);
 
 				String entry = appendToLength(get(row, column),
 						getColumnWidth(column));
 				builder.append(" ").append(entry).append(" ");
 			}
-			if (seperateTail)
+			if (tailSeperator != null)
 				builder.append(tailSeperator);
 			if (row < nbOfRows - 1)
 				builder.append("\n");

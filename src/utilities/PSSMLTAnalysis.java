@@ -16,8 +16,8 @@ import pfm.PFMReader;
 import pfm.PFMUtil;
 import util.FileUtil;
 import util.Statistics;
+import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
-import cli.CommandLineInterface;
 
 /**
  * 
@@ -25,7 +25,7 @@ import cli.CommandLineInterface;
  * @version 0.1
  * 
  */
-public class PSSMLTAnalysis extends CommandLineInterface {
+public class PSSMLTAnalysis extends CommandLineAdapter {
 	/**
 	 * 
 	 */
@@ -48,24 +48,6 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 		new PSSMLTAnalysis().parse(arguments);
 	}
 
-	/**
-	 * 
-	 * @param arguments
-	 */
-	public static void analyse(CommandLineArguments arguments) {
-		new PSSMLTAnalysis().parse(arguments);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
-	 * cli.CommandLineArguments)
-	 */
-	@Override
-	public void handleAction(String token, CommandLineArguments arguments) {
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -79,15 +61,6 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#parsed()
-	 */
-	@Override
-	public void finished() {
 	}
 
 	/**
@@ -261,12 +234,13 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 					Statistics statistic = e2.getValue();
 					double average = statistic.getAverage();
 					double median = statistic.getMedian();
+					double std = statistic.getStandardDeviation();
 					double variance = statistic.getVariance();
 					int size = statistic.size();
 
 					writer.write(String.format(
-							"%.10f %.10f %.10f %10f %.10f %d\n", sigma,
-							largeStep, average, median, variance, size));
+							"%.10f %.10f %.10f %10f %.10f %.10f %d\n", sigma,
+							largeStep, average, median, std, variance, size));
 
 					if (average < bestAverage) {
 						bestAverage = average;
@@ -284,8 +258,20 @@ public class PSSMLTAnalysis extends CommandLineInterface {
 		}
 
 		System.out.format("[ PSSMLT Analysis %s ] \n", sceneName);
-		System.out.format("sigma:                  %.10f\n", bestSigma);
-		System.out.format("large step probability: %.10f\n", bestLargeStep);
+		System.out.format("sigma:                       %.10f\n", bestSigma);
+		System.out
+				.format("large step probability:      %.10f\n", bestLargeStep);
+		Statistics statistics = dataMap.get(bestSigma).get(bestLargeStep);
+		String.format("n:                     %d\n"
+				+ "average mse:               %.10f\n"
+				+ "median mse:                %.10f\n"
+				+ "standard deviation of mse: %.10f\n"
+				+ "variance of mse:           %.10f\n"
+				+ "minimum mse:               %.10f\n"
+				+ "maximum mse:               %.10f\n", statistics.size(),
+				statistics.getAverage(), statistics.getMedian(),
+				statistics.getVariance(), statistics.getMinimum(),
+				statistics.getMaximum());
 
 		/***********************************************************************
 		 * Generate tikz plot data

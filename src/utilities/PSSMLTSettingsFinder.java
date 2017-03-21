@@ -7,8 +7,8 @@ import java.util.Random;
 
 import task.PSSMLTRenderTask;
 import task.RenderTaskInterface;
+import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
-import cli.CommandLineInterface;
 import distributed.Computer;
 import distributed.LocalComputer;
 import distributed.RemoteAuthentication;
@@ -22,7 +22,7 @@ import distributed.RenderTaskExecutionService;
  * @author Niels Billen
  * @version 0.1
  */
-public class PSSMLTSettingsFinder extends CommandLineInterface {
+public class PSSMLTSettingsFinder extends CommandLineAdapter {
 	/**
 	 * 
 	 */
@@ -42,7 +42,10 @@ public class PSSMLTSettingsFinder extends CommandLineInterface {
 		addIntegerSetting("samples",
 				"Number of samples to render each experiment with.", 1024);
 
-		addExample("-samples 1024 -xresolution 120 -yresolution 64 -maxdepth 8 scenes/mirror-balls scenes/kitchen -xresolution 64 scenes/mirror-ring scenes/caustic-glass -maxdepth 100 scenes/volume-caustic");
+		addExample("-samples 1024 -xresolution 120 -yresolution 64 -maxdepth 8 "
+				+ "mirror-balls kitchen "
+				+ "-xresolution 64 mirror-ring caustic-glass "
+				+ "-maxdepth 100 volume-caustic");
 	}
 
 	/**
@@ -51,16 +54,6 @@ public class PSSMLTSettingsFinder extends CommandLineInterface {
 	 */
 	public static void main(String[] arguments) {
 		new PSSMLTSettingsFinder().parse(arguments);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
-	 * cli.CommandLineArguments)
-	 */
-	@Override
-	public void handleAction(String token, CommandLineArguments arguments) {
 	}
 
 	/*

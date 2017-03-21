@@ -9,8 +9,8 @@ import java.util.List;
 
 import bibtex.BibTexEntry;
 import bibtex.BibTexParser;
+import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
-import cli.CommandLineInterface;
 
 /**
  * A utility which can cleanup the formatting of a .pbrt scene file.
@@ -18,7 +18,7 @@ import cli.CommandLineInterface;
  * @author Niels Billen
  * @version 0.1
  */
-public class BibTexCleaner extends CommandLineInterface {
+public class BibTexCleaner extends CommandLineAdapter {
 	/**
 	 * 
 	 */
@@ -36,24 +36,6 @@ public class BibTexCleaner extends CommandLineInterface {
 	 */
 	public static void main(String[] arguments) {
 		new BibTexCleaner().parse(arguments);
-	}
-
-	/**
-	 * 
-	 * @param arguments
-	 */
-	public static void clean(CommandLineArguments arguments) {
-		new BibTexCleaner().parse(arguments);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
-	 * cli.CommandLineArguments)
-	 */
-	@Override
-	public void handleAction(String token, CommandLineArguments arguments) {
 	}
 
 	/*
@@ -75,15 +57,6 @@ public class BibTexCleaner extends CommandLineInterface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#parsed()
-	 */
-	@Override
-	public void finished() {
 	}
 
 	/**

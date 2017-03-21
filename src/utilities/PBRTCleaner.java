@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import pbrt.PBRTParser;
 import pbrt.PBRTScene;
+import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
-import cli.CommandLineInterface;
 
 /**
  * A utility which can cleanup the formatting of a .pbrt scene file.
@@ -13,7 +13,7 @@ import cli.CommandLineInterface;
  * @author Niels Billen
  * @version 0.1
  */
-public class PBRTCleaner extends CommandLineInterface {
+public class PBRTCleaner extends CommandLineAdapter {
 	/**
 	 * 
 	 */
@@ -41,16 +41,6 @@ public class PBRTCleaner extends CommandLineInterface {
 		new PBRTCleaner().parse(arguments);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#handleAction(java.lang.String,
-	 * cli.CommandLineArguments)
-	 */
-	@Override
-	public void handleAction(String token, CommandLineArguments arguments) {
-	}
-
 	@Override
 	public void handleArgument(String argument, CommandLineArguments arguments) {
 		try {
@@ -59,14 +49,5 @@ public class PBRTCleaner extends CommandLineInterface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see cli.CommandLineInterface#parsed()
-	 */
-	@Override
-	public void finished() {
 	}
 }
