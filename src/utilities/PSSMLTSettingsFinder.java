@@ -56,6 +56,14 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 		new PSSMLTSettingsFinder().parse(arguments);
 	}
 
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void main(CommandLineArguments arguments) {
+		new PSSMLTSettingsFinder().parse(arguments);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 

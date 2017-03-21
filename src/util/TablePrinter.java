@@ -119,7 +119,7 @@ public class TablePrinter {
 	 * @return
 	 */
 	private String appendToLength(String string, int length) {
-		return String.format("%-" + length + "%s", string);
+		return String.format("%-" + length + "s", string);
 	}
 
 	/*

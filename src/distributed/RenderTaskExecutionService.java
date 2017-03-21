@@ -292,6 +292,7 @@ public class RenderTaskExecutionService {
 					} catch (Exception e) {
 						monitor.lock();
 						try {
+							e.printStackTrace();
 							busy.remove(pc);
 							remainingTasks.add(task);
 							for (RenderTaskExecutionServiceListener listener : listeners)

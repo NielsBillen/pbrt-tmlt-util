@@ -28,9 +28,9 @@ import bibtex.types.BibTexTechReport;
  */
 public class BibTexParser {
 	private static final Pattern entryPattern = Pattern
-			.compile(" *([a-z]+) *= *[\\{|\"]([^=]+)[\\}|\"] *?[, *]");
+			.compile(" *([a-z|_]+) *= *[\\{|\"]([^=]+)[\\}|\"] *?[, *]");
 	private static final Pattern bibtexPattern = Pattern
-			.compile("@([a-z]+) *\\{ *([a-z]+) *, *(("
+			.compile("@([^=|^ ]+) *\\{ *([^=]+) *, *(("
 					+ entryPattern.toString() + ")*) *\\}");
 
 	/**
@@ -54,6 +54,7 @@ public class BibTexParser {
 		fileScanner.close();
 		String bibtex = builder.toString().replaceAll("\t+", " ")
 				.replaceAll("  *", " ").trim();
+		
 
 		/***********************************************************************
 		 * Scan the bibtex

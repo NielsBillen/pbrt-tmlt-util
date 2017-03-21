@@ -1,5 +1,7 @@
 package task;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import pbrt.PBRTScene;
 
 /**
@@ -9,6 +11,13 @@ import pbrt.PBRTScene;
  * @version 0.1
  */
 public abstract class RenderTaskInterface {
+	private static AtomicInteger nextIdentifier = new AtomicInteger(0);
+
+	/**
+	 * 
+	 */
+	public final int identifier = nextIdentifier.getAndIncrement();
+
 	/**
 	 * Returns the directory to store the results in.
 	 * 
@@ -43,10 +52,7 @@ public abstract class RenderTaskInterface {
 	 * @return a unique filename for the output of the render task.
 	 */
 	public String getFilename() {
-		return String.format("%s-samples-%d-xres-%d-yres-%d-seed-%d",
-				getSceneName(), nbOfSamples(), getXResolution(),
-				getYResolution(), getSeed());
-
+		return getSceneName();
 	}
 
 	/**

@@ -30,7 +30,14 @@ public class PBRTCleaner extends CommandLineAdapter {
 	 */
 	public static void main(String[] args) {
 		new PBRTCleaner().parse(args);
+	}
 
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void main(CommandLineArguments arguments) {
+		new PBRTCleaner().parse(arguments);
 	}
 
 	/**

@@ -48,6 +48,14 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		new PSSMLTAnalysis().parse(arguments);
 	}
 
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void main(CommandLineArguments arguments) {
+		new PSSMLTAnalysis().parse(arguments);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -109,8 +117,8 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 			throw new IllegalArgumentException(
 					"the given reference folder does not exist!");
 		if (!dataFolder.exists())
-			throw new IllegalArgumentException(
-					"the given data folder does not exist!");
+			throw new IllegalArgumentException("the given data folder \""
+					+ dataFolder + "\" does not exist!");
 		if (!referenceFolder.isDirectory())
 			throw new IllegalArgumentException(
 					"the given reference folder is not a directory!");
@@ -226,6 +234,8 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		File file = new File(outputDirectory, sceneName + ".txt");
 
 		try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
+			writer.write("sigma largestep average median std variance size\n");
+
 			for (Entry<Double, TreeMap<Double, Statistics>> e1 : dataMap
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
@@ -262,16 +272,16 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		System.out
 				.format("large step probability:      %.10f\n", bestLargeStep);
 		Statistics statistics = dataMap.get(bestSigma).get(bestLargeStep);
-		String.format("n:                     %d\n"
-				+ "average mse:               %.10f\n"
-				+ "median mse:                %.10f\n"
-				+ "standard deviation of mse: %.10f\n"
-				+ "variance of mse:           %.10f\n"
-				+ "minimum mse:               %.10f\n"
-				+ "maximum mse:               %.10f\n", statistics.size(),
+		System.out.format("n:                           %d\n"
+				+ "average mse:                 %.10f\n"
+				+ "median mse:                  %.10f\n"
+				+ "standard deviation of mse:   %.10f\n"
+				+ "variance of mse:             %.10f\n"
+				+ "minimum mse:                 %.10f\n"
+				+ "maximum mse:                 %.10f\n", statistics.size(),
 				statistics.getAverage(), statistics.getMedian(),
-				statistics.getVariance(), statistics.getMinimum(),
-				statistics.getMaximum());
+				statistics.getStandardDeviation(), statistics.getVariance(),
+				statistics.getMinimum(), statistics.getMaximum());
 
 		/***********************************************************************
 		 * Generate tikz plot data
@@ -279,16 +289,16 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 
 		File tex = new File(outputDirectory, sceneName + ".tex");
 		try (BufferedWriter writer = Files.newBufferedWriter(tex.toPath())) {
-			writer.write("\\documentclass{article}\n");
+			writer.write("\\documentclass{standalone}\n");
 			writer.write("\\usepackage{tikz}\n");
 			writer.write("\\usepackage{pgfplots}\n");
 			writer.write("\\begin{document}\n");
-			writer.write("\\\tbegin{tikzpicture}\n");
-			writer.write("\\\t\tbegin{axis}view={-20}{20}, grid=both]\n");
-			writer.write("\\\t\t\t\\addplot3[surf] file { " + sceneName
+			writer.write("\t\\begin{tikzpicture}\n");
+			writer.write("\t\t\\begin{axis}view={-20}{20}, grid=both]\n");
+			writer.write("\t\t\t\\addplot3[surf] file[x=sigma, y=largestep, z=average] { " + sceneName
 					+ ".txt };\n");
-			writer.write("\\\t\tend{axis}\n");
-			writer.write("\\\tend{tikzpicture}\n");
+			writer.write("\t\t\\end{axis}\n");
+			writer.write("\t\\end{tikzpicture}\n");
 			writer.write("\\end{document}\n");
 		}
 	}

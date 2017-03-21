@@ -265,11 +265,11 @@ public class RemoteComputer extends Computer {
 
 			if (nCores() <= 0)
 				command = String
-						.format("cd workspace/pbrt-tmlt && ./pbrt --outfile %s --seed %s %s",
+						.format("cd workspace/pbrt-tmlt && nice -n 19 ./pbrt --outfile %s --seed %s %s",
 								outFile, task.getSeed(), remoteSceneFile);
 			else
 				command = String
-						.format("cd workspace/pbrt-tmlt && ./pbrt --outfile %s --seed %s --nthreads %d %s",
+						.format("cd workspace/pbrt-tmlt && nice -n 19 ./pbrt --outfile %s --seed %s --nthreads %d %s",
 								outFile, task.getSeed(), nCores(),
 								remoteSceneFile);
 			pbrt(command, listener);

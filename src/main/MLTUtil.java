@@ -72,12 +72,12 @@ public class MLTUtil extends CommandLineInterface {
 	@Override
 	public void handleAction(String token, CommandLineArguments arguments) {
 		if (token.equals("clean-pbrt"))
-			PBRTCleaner.main(arguments.subArray());
+			PBRTCleaner.main(arguments);
 		else if (token.equals("clean-bibtex"))
-			BibTexCleaner.main(arguments.subArray());
+			BibTexCleaner.main(arguments);
 		else if (token.equals("pssmltanalysis"))
-			PSSMLTAnalysis.main(arguments.subArray());
+			PSSMLTAnalysis.main(arguments);
 		else if (token.equals("pssmltsettings"))
-			PSSMLTSettingsFinder.main(arguments.subArray());
+			PSSMLTSettingsFinder.main(arguments);
 	}
 }

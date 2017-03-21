@@ -190,7 +190,7 @@ public class Statistics {
 				"[ Statistics ]:\n" + "n:                  %d\n"
 						+ "average:            %.10f\n"
 						+ "median:             %.10f\n"
-						+ "standard deviation: %.10f"
+						+ "standard deviation: %.10f\n"
 						+ "variance:           %.10f\n"
 						+ "minimum:            %.10f\n"
 						+ "maximum:            %.10f\n", size(), getAverage(),

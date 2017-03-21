@@ -38,6 +38,14 @@ public class BibTexCleaner extends CommandLineAdapter {
 		new BibTexCleaner().parse(arguments);
 	}
 
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void main(CommandLineArguments arguments) {
+		new BibTexCleaner().parse(arguments);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -81,6 +89,7 @@ public class BibTexCleaner extends CommandLineAdapter {
 		StringBuilder builder = new StringBuilder();
 		List<BibTexEntry> entries = BibTexParser.parse(file);
 
+		
 		for (int i = 0; i < entries.size(); ++i) {
 			BibTexEntry entry = entries.get(i);
 			builder.append(entry);
