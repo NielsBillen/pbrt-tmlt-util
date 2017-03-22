@@ -57,8 +57,12 @@ public class PFMUtil {
 					"the images do not have matching size!" + image1.width
 							+ "x" + image1.height + " vs " + image2.width + "x"
 							+ image2.height);
-		
+
 		Statistics statistic = new Statistics();
+
+		double s1 = 0;
+		double s2 = 0;
+		double inv = 1.0 / 3.0;
 
 		for (int y = 0; y < image1.height; ++y) {
 			for (int x = 0; x < image1.width; ++x) {
@@ -66,8 +70,22 @@ public class PFMUtil {
 				float[] c2 = image2.getColorAt(x, y);
 
 				for (int i = 0; i < 3; ++i) {
-					double bc1 = c1[i];
-					double bc2 = c2[i];
+					s1 += c1[i] * inv;
+					s2 += c2[i] * inv;
+				}
+			}
+		}
+		double invs1 = 1.0 / s1;
+		double invs2 = 1.0 / s2;
+
+		for (int y = 0; y < image1.height; ++y) {
+			for (int x = 0; x < image1.width; ++x) {
+				float[] c1 = image1.getColorAt(x, y);
+				float[] c2 = image2.getColorAt(x, y);
+
+				for (int i = 0; i < 3; ++i) {
+					double bc1 = c1[i] * invs1;
+					double bc2 = c2[i] * invs2;
 					double difference = bc1 - bc2;
 					statistic.add(difference * difference);
 				}
@@ -75,33 +93,6 @@ public class PFMUtil {
 		}
 
 		return statistic.getAverage();
-//		if (image1 == null)
-//			throw new NullPointerException("the first image is null!");
-//		if (image2 == null)
-//			throw new NullPointerException("the second image is null!");
-//		if (image1.width != image2.width || image1.height != image2.height)
-//			throw new IllegalArgumentException(
-//					"the images do not have matching size!" + image1.width
-//							+ "x" + image1.height + " vs " + image2.width + "x"
-//							+ image2.height);
-//		BigDecimal result = BigDecimal.ZERO;
-//
-//		for (int y = 0; y < image1.height; ++y) {
-//			for (int x = 0; x < image1.width; ++x) {
-//				float[] c1 = image1.getColorAt(x, y);
-//				float[] c2 = image2.getColorAt(x, y);
-//
-//				for (int i = 0; i < 3; ++i) {
-//					BigDecimal bc1 = new BigDecimal(c1[i]);
-//					BigDecimal bc2 = new BigDecimal(c2[i]);
-//					result = result.add(bc1.subtract(bc2).pow(2));
-//				}
-//			}
-//		}
-//
-//		BigDecimal resolution = new BigDecimal(image1.width * image1.height
-//				* 3.0);
-//		return result.divide(resolution, RoundingMode.HALF_DOWN);
 	}
 
 	/**
@@ -181,7 +172,8 @@ public class PFMUtil {
 	 *             when the sizes of the images do not match.
 	 * @return the mean squared error between the two given images.
 	 */
-	public static PFMImage divide(PFMImage image1, PFMImage image2, float scale) {
+	public static PFMImage
+			divide(PFMImage image1, PFMImage image2, float scale) {
 		if (image1 == null)
 			throw new NullPointerException("the first image is null!");
 		if (image2 == null)

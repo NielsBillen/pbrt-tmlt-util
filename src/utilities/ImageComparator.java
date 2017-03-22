@@ -27,6 +27,17 @@ public class ImageComparator extends CommandLineAdapter {
 
 		addStringSetting("reference", "Filename of the reference image.",
 				new File(home, "renderdata").getAbsolutePath());
+
+		/*
+		 * --reference
+		 * /home/niels/renderdata/reference-highquality/mirror-ring/mirror
+		 * -ring-pssmlt
+		 * -mutations-1048576-maxdepth-8-sigma-0.01-step-0.3-seed-0-0.pfm
+		 * /home/niels
+		 * /workspace/pbrt-tmlt/results/mirror-ring/mirror-ring-pssmlt.pfm
+		 * /home/
+		 * niels/workspace/pbrt-tmlt/results/mirror-ring/mirror-ring-tpssmlt.pfm
+		 */
 	}
 
 	/**
