@@ -10,8 +10,10 @@ import task.RenderTaskInterface;
 import util.Printer;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
+import distributed.Computer;
 import distributed.LocalComputer;
 import distributed.RemoteAuthentication;
+import distributed.RemoteCluster;
 import distributed.RemoteComputer;
 import distributed.RemoteExecutionMonitor;
 import distributed.RenderTaskExecutionService;
@@ -132,9 +134,9 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 			service.submit(task);
 
 
-//		for (Computer computer : RemoteCluster.getCluster(3, true)) {
-//			service.add(computer);
-//		}
+		for (Computer computer : RemoteCluster.getCluster(3, true)) {
+			service.add(computer);
+		}
 
 		RemoteAuthentication remote = new RemoteAuthentication("niels", true);
 		RemoteComputer computer = new RemoteComputer("anna.cs.kuleuven.be",
