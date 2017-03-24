@@ -1,7 +1,15 @@
 bin
+pssmltsettings
+output
+
 .classpath
 .project
 .settings
 
 *.class
 *.txt
+*.bib
+*.png
+*.pfm
+*.bib
+

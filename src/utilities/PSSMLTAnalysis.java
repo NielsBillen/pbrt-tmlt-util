@@ -249,18 +249,18 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 					int size = statistic.size();
 
 					writer.write(String.format(
-							"%.10f %.10f %.10f %10f %.10f %.10f %d\n", sigma,
+							"%.16f %.16f %.16f %.16f %.16f %.16f %d\n", sigma,
 							largeStep, average, median, std, variance, size));
 
-					if (average < bestAverage) {
-						bestAverage = average;
+					if (median < bestAverage) {
+						bestAverage = median;
 						bestSigma = sigma;
 						bestLargeStep = largeStep;
 					}
-					if (average < minimum)
-						minimum = average;
-					if (average > maximum)
-						maximum = average;
+					if (median < minimum)
+						minimum = median;
+					if (median > maximum)
+						maximum = median;
 
 				}
 				writer.write("\n");
@@ -295,8 +295,8 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 			writer.write("\\begin{document}\n");
 			writer.write("\t\\begin{tikzpicture}\n");
 			writer.write("\t\t\\begin{axis}view={-20}{20}, grid=both]\n");
-			writer.write("\t\t\t\\addplot3[surf] file[x=sigma, y=largestep, z=average] { " + sceneName
-					+ ".txt };\n");
+			writer.write("\t\t\t\\addplot3[surf] table[x=sigma, y=largestep, z=average] {" + sceneName
+					+ ".txt};\n");
 			writer.write("\t\t\\end{axis}\n");
 			writer.write("\t\\end{tikzpicture}\n");
 			writer.write("\\end{document}\n");

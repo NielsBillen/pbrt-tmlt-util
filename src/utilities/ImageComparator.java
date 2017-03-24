@@ -6,6 +6,7 @@ import java.io.FilenameFilter;
 import pfm.PFMImage;
 import pfm.PFMReader;
 import pfm.PFMUtil;
+import pfm.PFMWriter;
 import util.Statistics;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
@@ -68,6 +69,14 @@ public class ImageComparator extends CommandLineAdapter {
 				PFMImage image = PFMReader.read(file);
 				double mse = PFMUtil.MSE(image, reference);
 				System.out.format("mse: %.16f\n", mse);
+
+				String extensionless = filename.replaceAll(".pfm$", "");
+				PFMImage difference = PFMUtil.mseImage(image, reference);
+//				difference.normalize();
+				
+				PFMWriter.write(extensionless + "-difference.pfm", difference);
+				difference.write(extensionless + "-difference.png", 1.0);
+
 			} else if (file.isDirectory()) {
 				Statistics statistics = new Statistics();
 
@@ -91,5 +100,4 @@ public class ImageComparator extends CommandLineAdapter {
 			e.printStackTrace();
 		}
 	}
-
 }

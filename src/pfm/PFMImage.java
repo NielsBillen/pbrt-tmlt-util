@@ -98,6 +98,21 @@ public class PFMImage {
 							+ "or %i for a color image!", floats.length, res,
 					3 * res));
 
+		for (int i = 0; i < floats.length; ++i)
+			if (floats[i] < 0) {
+
+				int index = i / 3;
+				int x = index % width;
+				int y = index / width;
+
+				String[] name = new String[] { "red", "green", "blue" };
+
+				System.err
+						.println("color component cannot be negative, but was "
+								+ floats[i] + " at index " + i + " (" + x + ","
+								+ y + ") color " + name[i % 3]);
+			}
+
 		this.width = width;
 		this.height = height;
 		this.floats = Arrays.copyOf(floats, floats.length);
@@ -216,6 +231,17 @@ public class PFMImage {
 		}
 	}
 
+	public void normalize() {
+		float maximum = Float.NEGATIVE_INFINITY;
+		for (int i = 0; i < nbOfFloats(); ++i)
+			maximum = Math.max(maximum, getFloat(i));
+		if (maximum != 0) {
+			float inv = 1.f / maximum;
+			for (int i = 0; i < nbOfFloats(); ++i)
+				setFloat(i, getFloat(i) * inv);
+		}
+	}
+
 	/**
 	 * Converts this Portable Float Map image to a BufferedImage.
 	 * 
@@ -323,7 +349,7 @@ public class PFMImage {
 	 *            The float within the range [-Infinity,Infinity]
 	 * @param gamma
 	 *            The inverse of the gamma. (I pass the inverse to avoid
-	 *            repeated divisions).
+	 *            repeatefiled divisions).
 	 * @return the gamma corrected float within the range [0,255].
 	 */
 	public static int toInt(double f, double gamma) {
