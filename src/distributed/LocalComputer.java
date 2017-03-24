@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import pbrt.PBRTScene;
 import task.RenderTaskInterface;
 import task.RenderTaskProgressListener;
+import util.FileUtil;
 
 /**
  * Represents the local computer.
@@ -129,14 +130,10 @@ public class LocalComputer extends Computer {
 		 * Allocate the result directory
 		 *--------------------------------------------------------------------*/
 
-		final File resultDirectory = new File(task.getResultDirectory());
-		if (!resultDirectory.exists()) {
-			if (!resultDirectory.mkdirs())
-				throw new ExecutionException("could not allocate the "
-						+ "directory containing the results of the rendering!");
-		} else if (!resultDirectory.isDirectory())
+		final File resultDirectory = new File(task.getDirectory());
+		if (!FileUtil.mkdirs(resultDirectory))
 			throw new ExecutionException(
-					"the requested results directory exists as a file!");
+					"the requested directory could not be allocated!");
 
 		/*----------------------------------------------------------------------
 		 * Write the task to the scene directory

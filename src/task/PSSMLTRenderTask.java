@@ -15,7 +15,8 @@ public class PSSMLTRenderTask extends RenderTask {
 	/**
 	 * 
 	 * @param scene
-	 * @param resultDirectory
+	 * @param directory
+	 * @param filename
 	 * @param samples
 	 * @param xResolution
 	 * @param yResolution
@@ -24,15 +25,14 @@ public class PSSMLTRenderTask extends RenderTask {
 	 * @param largestepprobability
 	 * @param seed
 	 */
-	public PSSMLTRenderTask(String scene, String resultDirectory, int samples,
-			int xResolution, int yResolution, int maxDepth, double sigma,
-			double largestepprobability, long seed) {
-		super(scene, resultDirectory, samples, xResolution, yResolution,
+	public PSSMLTRenderTask(String scene, String directory, String filename,
+			int samples, int xResolution, int yResolution, int maxDepth,
+			double sigma, double largestepprobability, int seed) {
+		super(scene, directory, filename, samples, xResolution, yResolution,
 				maxDepth, seed);
 
 		this.sigma = sigma;
 		this.largeStepProbability = largestepprobability;
-
 	}
 
 	/*
@@ -51,8 +51,9 @@ public class PSSMLTRenderTask extends RenderTask {
 				.setValue("pssmlt")
 				.setIntegerSetting("mutationsperpixel", samples)
 				.setIntegerSetting("maxdepth", maxDepth)
-				.setFloatSetting("sigma", sigma)
-				.setFloatSetting("largestepprobability", largeStepProbability);
+				.setFloatArraySetting("temperatures", 1.0)
+				.setFloatArraySetting("sigmas", sigma)
+				.setFloatArraySetting("largestepprobabilities", largeStepProbability);
 
 		PBRTProperty include = new PBRTProperty("Include")
 				.setValue("common.pbrt");
@@ -62,16 +63,5 @@ public class PSSMLTRenderTask extends RenderTask {
 		scene.addChild(include);
 
 		return scene;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see computer.RenderTaskInterface#getFilename()
-	 */
-	@Override
-	public String getFilename() {
-		return String.format("pssmlt-sigma-%.10f-largestep-%.10f-%s", sigma,
-				largeStepProbability, super.getFilename());
 	}
 }

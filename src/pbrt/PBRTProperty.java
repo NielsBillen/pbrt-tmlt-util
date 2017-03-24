@@ -563,7 +563,28 @@ public class PBRTProperty extends PBRTElement {
 		if (name == null)
 			throw new NullPointerException("the given name is null!");
 		removeSetting(name);
-		floatArray.put(name, setting);
+		floatArray.put("float " + name, setting);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param setting
+	 * @return
+	 */
+	public PBRTProperty setFloatArraySetting(String name, double... values) {
+		if (name == null)
+			throw new NullPointerException("the given name is null!");
+		removeSetting(name);
+
+		Float[] floats = new Float[values.length];
+		for (int i = 0; i < floats.length; ++i)
+			floats[i] = (float) values[i];
+
+		PBRTArray<Float> setting = new PBRTArray<Float>(floats);
+
+		floatArray.put("float " + name, setting);
 		return this;
 	}
 

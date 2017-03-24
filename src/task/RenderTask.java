@@ -1,9 +1,5 @@
 package task;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 /**
  * Represents a task to be rendered.
  * 
@@ -11,33 +7,68 @@ import java.util.Random;
  * @version 0.1
  */
 public abstract class RenderTask extends RenderTaskInterface {
+	/**
+	 * The name of the scene.
+	 */
 	public final String scene;
-	public final String resultDirectory;
-	public final int samples;
-	public final int xResolution;
-	public final int yResolution;
-	public final int maxDepth;
-	public final long seed;
 
 	/**
+	 * The number of samples to use.
+	 */
+	public final int samples;
+
+	/**
+	 * The horizontal resolution of the image.
+	 */
+	public final int xResolution;
+
+	/**
+	 * The vertical resolution of the image.
+	 */
+	public final int yResolution;
+
+	/**
+	 * The maximum recursion depth of the ray cast.
+	 */
+	public final int maxDepth;
+
+	/**
+	 * The seed to use for the ray tracing procedure.
+	 */
+	public final int seed;
+
+	/**
+	 * Creates a new render task which renders the given scene with the given
+	 * settings, storing the result in the given folder.
 	 * 
 	 * @param scene
-	 * @param resultDirectory
+	 *            the name of the scene.
+	 * @param directory
+	 *            the directory to write the result to.
+	 * @param filename
+	 *            the filename of the results (should have no extension).
 	 * @param samples
+	 *            the number of samples to render the image with.
 	 * @param xResolution
+	 *            the horizontal resolution of the image.
 	 * @param yResolution
+	 *            the vertical resolution of the image.
 	 * @param maxDepth
+	 *            the maximum recursion depth for tracing the rays.
 	 * @param seed
+	 *            the seed to use to generate different results.
 	 */
-	public RenderTask(String scene, String resultDirectory, int samples,
-			int xResolution, int yResolution, int maxDepth, long seed) {
+	public RenderTask(String scene, String directory, String filename,
+			int samples, int xResolution, int yResolution, int maxDepth,
+			int seed) {
+		super(directory, filename);
+
 		this.scene = scene;
-		this.resultDirectory = resultDirectory;
 		this.samples = samples;
 		this.xResolution = xResolution;
 		this.yResolution = yResolution;
 		this.maxDepth = maxDepth;
-		this.seed = seed < 0 ? seed + Long.MAX_VALUE : seed;
+		this.seed = seed < 0 ? seed + Integer.MAX_VALUE : seed;
 	}
 
 	/*
@@ -88,62 +119,5 @@ public abstract class RenderTask extends RenderTaskInterface {
 	@Override
 	public long getSeed() {
 		return seed;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see task.RenderTaskInterface#getResultDirectory()
-	 */
-	@Override
-	public String getResultDirectory() {
-		return resultDirectory;
-	}
-
-	/**
-	 * Subdivides this render task by subdividing the image in tiles of the
-	 * given size and returning rendering tasks which only render the specific
-	 * tile.
-	 * 
-	 * @param tileSize
-	 *            the size for the tiles.
-	 * @return a list containing render tasks which render the tiles of the
-	 *         image.
-	 */
-	public List<RenderTaskInterface> getTiles(int tileSize) {
-		Random random = new Random(getSeed());
-		List<RenderTaskInterface> result = new ArrayList<RenderTaskInterface>();
-
-		for (int x = 0; x < xResolution; x += tileSize) {
-			for (int y = 0; y < yResolution; y += tileSize) {
-				int x1 = Math.min(x + tileSize, xResolution);
-				int y1 = Math.min(y + tileSize, yResolution);
-				long seed = random.nextLong();
-				RenderTaskInterface tiled = new TiledRenderTask(this, seed, x,
-						y, x1, y1);
-				result.add(tiled);
-
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 
-	 * @param repetitions
-	 * @return
-	 */
-	public List<RenderTaskInterface> repeat(int repetitions) {
-		List<RenderTaskInterface> result = new ArrayList<RenderTaskInterface>();
-
-		Random random = new Random(getSeed());
-
-		for (int i = 0; i < repetitions; ++i) {
-			RenderTaskInterface task = new RepeatedTask(this, i, repetitions,
-					random.nextLong());
-			result.add(task);
-		}
-
-		return result;
 	}
 }

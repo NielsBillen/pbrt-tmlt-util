@@ -1,6 +1,7 @@
 package task;
 
-import pbrt.PBRTArray;
+import java.util.Arrays;
+
 import pbrt.PBRTProperty;
 import pbrt.PBRTScene;
 
@@ -10,10 +11,10 @@ import pbrt.PBRTScene;
  * @version 0.1
  */
 public class TPSSMLTRenderTask extends RenderTask {
-	public final Float[] temperatures;
-	public final Float[] sigmas;
-	public final Float[] largeStepProbabilities;
-	public final float mixingRate;
+	public final double[] temperatures;
+	public final double[] sigmas;
+	public final double[] largeStepProbabilities;
+	public final double mixingRate;
 
 	/**
 	 * 
@@ -27,11 +28,11 @@ public class TPSSMLTRenderTask extends RenderTask {
 	 * @param largestepprobability
 	 * @param seed
 	 */
-	public TPSSMLTRenderTask(String scene, String resultDirectory, int samples,
-			int xResolution, int yResolution, int maxDepth,
+	public TPSSMLTRenderTask(String scene, String directory, String filename,
+			int samples, int xResolution, int yResolution, int maxDepth,
 			double[] temperatures, double[] sigmas,
-			double[] largestepprobabilities, double mixingRate, long seed) {
-		super(scene, resultDirectory, samples, xResolution, yResolution,
+			double[] largestepprobabilities, double mixingRate, int seed) {
+		super(scene, directory, filename, samples, xResolution, yResolution,
 				maxDepth, seed);
 
 		if (largestepprobabilities.length != temperatures.length)
@@ -39,16 +40,11 @@ public class TPSSMLTRenderTask extends RenderTask {
 		if (largestepprobabilities.length != sigmas.length)
 			throw new IllegalArgumentException("mismatch in size!");
 
-		this.temperatures = new Float[temperatures.length];
-		this.sigmas = new Float[temperatures.length];
-		this.largeStepProbabilities = new Float[temperatures.length];
-
-		for (int i = 0; i < temperatures.length; ++i) {
-			this.temperatures[i] = (float) temperatures[i];
-			this.sigmas[i] = (float) sigmas[i];
-			this.largeStepProbabilities[i] = (float) largestepprobabilities[i];
-		}
-		this.mixingRate = (float) mixingRate;
+		this.temperatures = Arrays.copyOf(temperatures, temperatures.length);
+		this.sigmas = Arrays.copyOf(sigmas, sigmas.length);
+		this.largeStepProbabilities = Arrays.copyOf(largestepprobabilities,
+				largestepprobabilities.length);
+		this.mixingRate = mixingRate;
 
 	}
 
@@ -68,13 +64,12 @@ public class TPSSMLTRenderTask extends RenderTask {
 				.setValue("tpssmlt")
 				.setIntegerSetting("mutationsperpixel", samples)
 				.setIntegerSetting("maxdepth", maxDepth)
+				.setBoolSetting("swaponsplat", false)
 				.setFloatSetting("mixingprobability", mixingRate)
-				.setFloatArraySetting("float", "temperatures",
-						new PBRTArray<Float>(temperatures))
-				.setFloatArraySetting("float", "sigmas",
-						new PBRTArray<Float>(sigmas))
-				.setFloatArraySetting("float", "largestepprobabilities",
-						new PBRTArray<Float>(largeStepProbabilities));
+				.setFloatArraySetting("temperatures", temperatures)
+				.setFloatArraySetting("sigmas", sigmas)
+				.setFloatArraySetting("largestepprobabilities",
+						largeStepProbabilities);
 
 		PBRTProperty include = new PBRTProperty("Include")
 				.setValue("common.pbrt");
@@ -84,28 +79,5 @@ public class TPSSMLTRenderTask extends RenderTask {
 		scene.addChild(include);
 
 		return scene;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see computer.RenderTaskInterface#getFilename()
-	 */
-	@Override
-	public String getFilename() {
-		// StringBuilder builder = new StringBuilder("tppsmlt-temp");
-		// for (Float temperature : temperatures)
-		// builder.append("-").append(String.format("%.4f", temperature));
-		// builder.append("-sigmas");
-		// for (Float sigma : sigmas)
-		// builder.append("-").append(String.format("%.4f", sigma));
-		// builder.append("-largesteps");
-		// for (Float largestep : largeStepProbabilities)
-		// builder.append("-").append(String.format("%.4f", largestep));
-		// builder.append("-mixing-").append(String.format("%.4f", mixingRate));
-		// builder.append("-").append(super.getFilename());
-		//
-		// return builder.toString();
-		return String.format("tppsmlt-%s-%d", super.getFilename(), identifier);
 	}
 }

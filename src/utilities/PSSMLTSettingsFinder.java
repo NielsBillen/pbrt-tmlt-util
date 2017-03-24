@@ -7,12 +7,11 @@ import java.util.Random;
 
 import task.PSSMLTRenderTask;
 import task.RenderTaskInterface;
+import util.Printer;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
-import distributed.Computer;
 import distributed.LocalComputer;
 import distributed.RemoteAuthentication;
-import distributed.RemoteCluster;
 import distributed.RemoteComputer;
 import distributed.RemoteExecutionMonitor;
 import distributed.RenderTaskExecutionService;
@@ -38,10 +37,14 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 		addIntegerSetting("yresolution", "Sets the vertical resolution.", 256);
 		addIntegerSetting("maxdepth", "Sets the maximum recursion depth.", 8);
 		addIntegerSetting("repetitions",
-				"Number of times the experiments have to be repeated.", 100);
+				"Number of times the experiments have to be repeated.", 1000);
 		addIntegerSetting("samples",
 				"Number of samples to render each experiment with.", 1024);
 
+		// -samples 1024 -xresolution 120 -yresolution 64 -maxdepth 8
+		// mirror-balls kitchen -xresolution 64 mirror-ring caustic-glass
+		// -maxdepth 100 volume-caustic
+		addExample("-samples 4096 -xresolution 2 -yresolution 2 -maxdepth 1000 milk");
 		addExample("-samples 1024 -xresolution 120 -yresolution 64 -maxdepth 8 "
 				+ "mirror-balls kitchen "
 				+ "-xresolution 64 mirror-ring caustic-glass "
@@ -72,24 +75,45 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 	 */
 	@Override
 	public void handleArgument(String argument, CommandLineArguments arguments) {
-		File pbrtDirectory = LocalComputer.get().pbrtDirectory;
-		File output = new File(pbrtDirectory, "output/pssmlt/" + argument);
+		final File pbrtDirectory = LocalComputer.get().pbrtDirectory;
+		final String pbrtDirectoryPath = pbrtDirectory.getAbsolutePath();
+		final String sceneOutputDirectory = String.format(
+				"%s/output/pssmlt/%s", pbrtDirectoryPath, argument);
+		final int repetitions = getIntegerSetting("repetitions");
 
-		Random random = new Random(0);
-		for (int sigma = 2; sigma <= 64; sigma += 2) {
-			double s = Math.pow(sigma * 0.01, 2);
-			for (int largeStep = 1; largeStep < 10; largeStep += 1) {
-				double t = Math.pow(largeStep * 0.1, 2);
+		final Random random = new Random(0);
 
-				PSSMLTRenderTask task = new PSSMLTRenderTask(argument,
-						output.getAbsolutePath(), getIntegerSetting("samples"),
-						getIntegerSetting("xresolution"),
-						getIntegerSetting("yresolution"),
-						getIntegerSetting("maxdepth"), s, t, random.nextLong());
+		List<Double> sigmas = new ArrayList<Double>();
+		for (int s = 2; s <= 80; s += 2) {
+			double sigma = Math.pow(s * 0.01, 3);
+			sigmas.add(sigma);
+		}
+		List<Double> largesteps = new ArrayList<Double>();
+		for (int t = 4; t <= 80; t += 4) {
+			double largestep = Math.pow(t * 0.01, 3);
+			largesteps.add(largestep);
+		}
 
-				for (RenderTaskInterface repetition : task
-						.repeat(getIntegerSetting("repetitions"))) {
-					tasks.add(repetition);
+
+		for (int i = 0; i < repetitions; ++i) {
+			for (double sigma : sigmas) {
+				for (double largestep : largesteps) {
+					int seed = random.nextInt(Integer.MAX_VALUE);
+
+					String directory = String.format(
+							"%s/sigma-%s/largestep-%s", sceneOutputDirectory,
+							Printer.print(sigma), Printer.print(largestep));
+
+					String filename = String.format("pssmlt-%d-%d-seed-%d",
+							i + 1, repetitions, seed);
+
+					PSSMLTRenderTask task = new PSSMLTRenderTask(argument,
+							directory, filename, getIntegerSetting("samples"),
+							getIntegerSetting("xresolution"),
+							getIntegerSetting("yresolution"),
+							getIntegerSetting("maxdepth"), sigma, largestep,
+							seed);
+					tasks.add(task);
 				}
 			}
 		}
@@ -107,13 +131,13 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 		for (RenderTaskInterface task : tasks)
 			service.submit(task);
 
-		service.add(LocalComputer.get());
-		for (Computer computer : RemoteCluster.getCluster(4, true)) {
-			service.add(computer);
-		}
+
+//		for (Computer computer : RemoteCluster.getCluster(3, true)) {
+//			service.add(computer);
+//		}
 
 		RemoteAuthentication remote = new RemoteAuthentication("niels", true);
-		RemoteComputer computer = new RemoteComputer("merida.cs.kuleuven.be",
+		RemoteComputer computer = new RemoteComputer("anna.cs.kuleuven.be",
 				remote);
 		service.add(computer);
 

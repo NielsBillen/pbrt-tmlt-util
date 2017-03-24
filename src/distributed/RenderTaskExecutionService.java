@@ -77,12 +77,13 @@ public class RenderTaskExecutionService {
 	}
 
 	/**
+	 * Returns a copy of the list of computers.
 	 * 
-	 * @return
+	 * @return a copy of the list of computers.
 	 */
 	public List<Computer> getComputers() {
 		monitor.lock();
-		List<Computer> result = new ArrayList<Computer>();
+		List<Computer> result = new ArrayList<Computer>(computers);
 		monitor.unlock();
 		return result;
 	}
@@ -107,6 +108,10 @@ public class RenderTaskExecutionService {
 		return result;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int finishedTasks() {
 		monitor.lock();
 		int result = finishedTasks.size();

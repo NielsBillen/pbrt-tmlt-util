@@ -11,6 +11,9 @@ import pbrt.PBRTScene;
  * @version 0.1
  */
 public abstract class RenderTaskInterface {
+	/**
+	 * 
+	 */
 	private static AtomicInteger nextIdentifier = new AtomicInteger(0);
 
 	/**
@@ -19,11 +22,46 @@ public abstract class RenderTaskInterface {
 	public final int identifier = nextIdentifier.getAndIncrement();
 
 	/**
-	 * Returns the directory to store the results in.
 	 * 
-	 * @return the directory to store the results in.
 	 */
-	public abstract String getResultDirectory();
+	private final String directory;
+
+	/**
+	 * 
+	 */
+	private final String filename;
+
+	/**
+	 * 
+	 * @param directory
+	 * @param filename
+	 */
+	public RenderTaskInterface(String directory, String filename) {
+		if (directory == null)
+			throw new NullPointerException("the given directory is null!");
+		if (filename == null)
+			throw new NullPointerException("the given filename is null!");
+		this.directory = directory;
+		this.filename = filename;
+	}
+
+	/**
+	 * Returns the filename to write the result to (without an extension).
+	 * 
+	 * @return the filename to write the result to (without an extension).
+	 */
+	final public String getFilename() {
+		return String.format("%s-id-%d", filename, identifier);
+	}
+
+	/**
+	 * Returns the directory to write the result to.
+	 * 
+	 * @return the directory to write the result to.
+	 */
+	final public String getDirectory() {
+		return directory;
+	}
 
 	/**
 	 * Returns the horizontal resolution for rendering the image.
@@ -45,15 +83,6 @@ public abstract class RenderTaskInterface {
 	 * @return the configuration file of the scene to be rendered.
 	 */
 	public abstract PBRTScene getScene();
-
-	/**
-	 * Returns a unique filename for the output of the render task.
-	 * 
-	 * @return a unique filename for the output of the render task.
-	 */
-	public String getFilename() {
-		return getSceneName();
-	}
 
 	/**
 	 * Returns the name of the scene.

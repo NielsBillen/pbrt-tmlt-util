@@ -110,13 +110,12 @@ public class FileUtil {
 	 */
 	public static boolean mkdirs(File file) {
 		if (file == null)
-			throw new NullPointerException("the given file is null!");
+			return false;
 		if (file.exists()) {
 			if (file.isDirectory())
 				return true;
 			else
-				throw new IllegalArgumentException(
-						"the given file exists but is not a directory!");
+				return false;
 		} else
 			return file.mkdirs();
 	}

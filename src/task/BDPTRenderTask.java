@@ -12,18 +12,18 @@ public class BDPTRenderTask extends RenderTask {
 	/**
 	 * 
 	 * @param scene
-	 * @param resultDirectory
+	 * @param directory
+	 * @param filename
 	 * @param samples
 	 * @param xResolution
 	 * @param yResolution
 	 * @param maxDepth
-	 * @param sigma
-	 * @param largestepprobability
 	 * @param seed
 	 */
-	public BDPTRenderTask(String scene, String resultDirectory, int samples,
-			int xResolution, int yResolution, int maxDepth, long seed) {
-		super(scene, resultDirectory, samples, xResolution, yResolution,
+	public BDPTRenderTask(String scene, String directory, String filename,
+			int samples, int xResolution, int yResolution, int maxDepth,
+			int seed) {
+		super(scene, directory, filename, samples, xResolution, yResolution,
 				maxDepth, seed);
 	}
 
@@ -54,15 +54,5 @@ public class BDPTRenderTask extends RenderTask {
 		scene.addChild(include);
 
 		return scene;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see computer.RenderTaskInterface#getFilename()
-	 */
-	@Override
-	public String getFilename() {
-		return String.format("bdpt-%s", super.getFilename());
 	}
 }

@@ -19,7 +19,6 @@ import com.sun.xml.internal.ws.util.NoCloseInputStream;
  * 
  * @author Niels Billen
  * @version 0.1
- * 
  */
 public class RemoteAuthentication implements UserInfo {
 	/**

@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import pbrt.PBRTScene;
 import task.RenderTaskInterface;
 import task.RenderTaskProgressListener;
+import util.FileUtil;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.ChannelSftp;
@@ -34,17 +35,7 @@ public class RemoteComputer extends Computer {
 	 */
 	public RemoteComputer(String hostName, RemoteAuthentication authentication)
 			throws NullPointerException {
-		super(0);
-
-		if (hostName == null)
-			throw new NullPointerException("the given host name is null!");
-		if (authentication == null)
-			throw new NullPointerException("the given authentication is null!");
-		this.hostName = hostName;
-		this.authentication = authentication;
-
-		authentication.promptPassword("Enter password for "
-				+ authentication.username + "@" + hostName + ":");
+		this(hostName, authentication, 0);
 	}
 
 	/**
@@ -63,6 +54,27 @@ public class RemoteComputer extends Computer {
 			throw new NullPointerException("the given authentication is null!");
 		this.hostName = hostName;
 		this.authentication = authentication;
+
+		ping();
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean ping() {
+		try {
+			JSch jsch = new JSch();
+			Session session = jsch
+					.getSession(authentication.username, hostName);
+			session.setUserInfo(authentication);
+			session.connect();
+
+			session.disconnect();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	/**
@@ -202,14 +214,10 @@ public class RemoteComputer extends Computer {
 		 * Allocate the result directory
 		 *--------------------------------------------------------------------*/
 
-		final File resultDirectory = new File(task.getResultDirectory());
-		if (!resultDirectory.exists()) {
-			if (!resultDirectory.mkdirs())
-				throw new ExecutionException("could not allocate the "
-						+ "directory containing the results of the rendering!");
-		} else if (!resultDirectory.isDirectory())
+		final File resultDirectory = new File(task.getDirectory());
+		if (!FileUtil.mkdirs(resultDirectory))
 			throw new ExecutionException(
-					"the requested results directory exists as a file!");
+					"the requested directory could not be allocated!");
 
 		/*----------------------------------------------------------------------
 		 * Write the task to the result directory
@@ -283,10 +291,10 @@ public class RemoteComputer extends Computer {
 		 *--------------------------------------------------------------------*/
 
 		try {
-			get(outFile.concat(".png"), task.getResultDirectory());
-			get(outFile.concat(".exr"), task.getResultDirectory());
-			get(outFile.concat(".pfm"), task.getResultDirectory());
-			get(outFile.concat(".txt"), task.getResultDirectory());
+			get(outFile.concat(".*"), task.getDirectory());
+//			get(outFile.concat(".exr"), task.getDirectory());
+//			get(outFile.concat(".pfm"), task.getDirectory());
+//			get(outFile.concat(".txt"), task.getDirectory());
 		} catch (Exception e) {
 			throw new ExecutionException(
 					"could not retrieve the rendered files!", e);
@@ -304,10 +312,7 @@ public class RemoteComputer extends Computer {
 		}
 
 		try {
-			exec(String.format("rm %s", outFile.concat(".png")));
-			exec(String.format("rm %s", outFile.concat(".exr")));
-			exec(String.format("rm %s", outFile.concat(".pfm")));
-			exec(String.format("rm %s", outFile.concat(".txt")));
+			exec(String.format("rm %s.*", outFile));
 		} catch (Exception e) {
 			throw new ExecutionException(
 					"could not cleand the remote files in /tmp folder!", e);

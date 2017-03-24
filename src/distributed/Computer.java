@@ -30,7 +30,7 @@ public abstract class Computer {
 					+ "\\(([0-9]+\\.[0-9])s\\|([0-9]+\\.[0-9])s\\)");
 
 	/**
-	 * 
+	 * Initializes a computer which is able to utilize all the cores.
 	 */
 	public Computer() {
 		this(0);
@@ -40,9 +40,16 @@ public abstract class Computer {
 	 * Creates a new computer.
 	 * 
 	 * @param nCores
-	 *            the number of available cores.
+	 *            the number of cores to use during execution of rendering
+	 *            tasks. (0 = use all cores).
+	 * @throws IllegalArgumentException
+	 *             when the number of cores is smaller than zero.
 	 */
-	public Computer(int nCores) {
+	public Computer(int nCores) throws IllegalArgumentException {
+		if (nCores < 0)
+			throw new IllegalArgumentException(
+					"the number of cores must be larger "
+							+ "than or equal to zero!");
 		this.nCores = nCores;
 	}
 
