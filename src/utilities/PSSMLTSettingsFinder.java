@@ -96,7 +96,6 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 			largesteps.add(largestep);
 		}
 
-
 		for (int i = 0; i < repetitions; ++i) {
 			for (double sigma : sigmas) {
 				for (double largestep : largesteps) {
@@ -133,15 +132,16 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 		for (RenderTaskInterface task : tasks)
 			service.submit(task);
 
-
+		service.add(LocalComputer.get());
 		for (Computer computer : RemoteCluster.getCluster(3, true)) {
 			service.add(computer);
 		}
 
-		RemoteAuthentication remote = new RemoteAuthentication("niels", true);
-		RemoteComputer computer = new RemoteComputer("anna.cs.kuleuven.be",
-				remote);
-		service.add(computer);
+		// RemoteAuthentication remote = new RemoteAuthentication("niels",
+		// true);
+		// RemoteComputer computer = new RemoteComputer("anna.cs.kuleuven.be",
+		// remote);
+		// service.add(computer);
 
 		service.addListener(new RemoteExecutionMonitor(service));
 
