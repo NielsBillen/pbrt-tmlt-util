@@ -31,6 +31,8 @@ public class MLTUtil extends CommandLineInterface {
 		addAction("pssmltsettings",
 				"Executes the experiments to generate the data for"
 						+ " finding the optimal pssmlt settings.");
+		addAction("pssmltorganizer",
+				"Properly organizes the pssmltsettings data from older executions.");
 	}
 
 	/**
