@@ -210,21 +210,19 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 
 				if (!orignalFile.exists())
 					continue;
+				if (renamedFile.exists()) {
+					throw new IllegalStateException(
+							"was about to overwrite file!");
+				}
 
-				System.out.format("moving %s to %s...\n",
-						orignalFile.getName(), renamedFile.getName());
 
 				if (!orignalFile.renameTo(renamedFile))
 					System.err.format("failed to move %s to %s...\n",
 							orignalFile.getName(), renamedFile.getName());
-				else {
-					System.out.format("moved %s to %s...\n",
-							orignalFile.getName(), renamedFile.getName());
-				}
 			}
 
 		}
 
-		System.out.println(total);
+//		System.out.println(total);
 	}
 }
