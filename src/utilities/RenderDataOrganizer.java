@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import util.FileUtil;
 import util.Printer;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
@@ -30,6 +31,12 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 	 */
 	private static final Pattern largestepPattern = Pattern
 			.compile("largestep\\-([0-9]*\\.[0-9]*)");
+
+	/**
+	 * 
+	 */
+	private static final Pattern seedPattern = Pattern
+			.compile("seed\\-([0-9]*)");
 
 	/**
 	 * 
@@ -108,6 +115,13 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 				System.out.format(
 						"could not find large step in filename \"%s\"",
 						filename);
+				continue;
+			}
+			Matcher seedMatcher = seedPattern.matcher(filename);
+			if (!seedMatcher.find()) {
+				System.out.format("could not find seed in filename \"%s\"",
+						filename);
+				continue;
 			}
 
 			double sigma = Double.parseDouble(sigmaMatcher.group(1));
@@ -124,6 +138,54 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 				total.put(key, 1);
 			else
 				total.put(key, occurences + 1);
+		}
+
+		// Count for each setting the number of occurrences
+		for (File pfm : pfms) {
+			String filename = pfm.getName().replaceAll(".pfm$", "");
+
+			Matcher sigmaMatcher = sigmaPattern.matcher(filename);
+			if (!sigmaMatcher.find()) {
+				System.out.format("could not find sigma in filename \"%s\"",
+						filename);
+				continue;
+			}
+
+			Matcher largestepMatcher = largestepPattern.matcher(filename);
+			if (!largestepMatcher.find()) {
+				System.out.format(
+						"could not find large step in filename \"%s\"",
+						filename);
+				continue;
+			}
+
+			Matcher seedMatcher = seedPattern.matcher(filename);
+			if (!seedMatcher.find()) {
+				System.out.format("could not find seed in filename \"%s\"",
+						filename);
+				continue;
+			}
+
+			double sigma = Double.parseDouble(sigmaMatcher.group(1));
+			double largestep = Double.parseDouble(largestepMatcher.group(1));
+			long seed = Long.parseLong(seedMatcher.group(1));
+
+			String sigmaDirectoryName = String.format("sigma-%s",
+					Printer.print(sigma));
+			String largestepDirectoryName = String.format("largestep-%s",
+					Printer.print(largestep));
+			String key = sigmaDirectoryName + "/" + largestepDirectoryName;
+
+			File pfmDirectory = new File(file, key);
+			if (!FileUtil.mkdirs(pfmDirectory)) {
+				System.out
+						.println("could not create the directory to store the files in!");
+			}
+
+			Integer totalOccurences = total.get(key);
+			if (totalOccurences == null)
+				throw new IllegalStateException("total occurences cannot be 0!");
+
 		}
 
 		System.out.println(total);
