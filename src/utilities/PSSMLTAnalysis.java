@@ -8,6 +8,10 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import pbrt.PBRTParser;
@@ -206,87 +210,121 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		 * Find the best settings
 		 **********************************************************************/
 
-		TreeMap<Double, TreeMap<Double, Statistics>> dataMap = new TreeMap<Double, TreeMap<Double, Statistics>>();
+		final ReentrantLock lock = new ReentrantLock();
+		final TreeMap<Double, TreeMap<Double, Statistics>> data = new TreeMap<Double, TreeMap<Double, Statistics>>();
+		final ExecutorService service = Executors.newFixedThreadPool(Runtime
+				.getRuntime().availableProcessors());
 
 		File[] sigmaFolders = dataFolder.listFiles(sigmaFilter);
 		Arrays.sort(sigmaFolders);
 
 		for (File sigmaFolder : sigmaFolders) {
 			final String sigmaFolderName = sigmaFolder.getName();
-			final double sigmaFolderSigma = Double.parseDouble(sigmaFolderName
-					.replaceAll("sigma\\-", ""));
+			final double sigma = Double.parseDouble(sigmaFolderName.replaceAll(
+					"sigma\\-", ""));
 
-			File[] largestepFolders = sigmaFolder.listFiles(largestepFilter);
+			final File[] largestepFolders = sigmaFolder
+					.listFiles(largestepFilter);
 			Arrays.sort(largestepFolders);
 
 			for (File largestepFolder : largestepFolders) {
 				final String largestepFolderName = largestepFolder.getName();
-				final double largestepFolderLargeStep = Double
-						.parseDouble(largestepFolderName.replaceAll(
-								"largestep\\-", ""));
+				final double largestep = Double.parseDouble(largestepFolderName
+						.replaceAll("largestep\\-", ""));
 
-				File[] images = largestepFolder.listFiles(pfmFilter);
+				final File[] images = largestepFolder.listFiles(pfmFilter);
 				Arrays.sort(images);
 
-				for (File image : images) {
-					/*------------------------------------------------------------------
-					 * Calculate the mean squared error
-					 *----------------------------------------------------------------*/
+				Thread thread = new Thread() {
+					/*
+					 * (non-Javadoc)
+					 * 
+					 * @see java.lang.Thread#run()
+					 */
+					public void run() {
+						Statistics statistics = new Statistics();
 
-					PFMImage dataImage = PFMReader.read(image);
-					double mse = PFMUtil.MSE(dataImage, referenceImage);
+						for (final File image : images) {
+							try {
+								/*------------------------------------------------------------------
+								 * Calculate the mean squared error
+								 *----------------------------------------------------------------*/
 
-					/*------------------------------------------------------------------
-					 * Find the relevant parameter in the scene file
-					 *----------------------------------------------------------------*/
+								PFMImage dataImage = PFMReader.read(image);
+								double mse = PFMUtil.MSE(dataImage,
+										referenceImage);
 
-					File dataPBRTFile = new File(image.getAbsolutePath()
-							.replaceAll(".pfm$", ".pbrt"));
-					if (!dataPBRTFile.exists()) {
-						System.err.format("missing .pbrt scene file for %s!\n",
-								dataPBRTFile.getAbsolutePath());
-						continue;
-					}
+								/*------------------------------------------------------------------
+								 * Find the relevant parameter in the scene file
+								 *----------------------------------------------------------------*/
 
-					PBRTScene scene = PBRTParser.parse(dataPBRTFile);
-					double sigma = Double.parseDouble(scene
-							.findSetting("Integrator.sigma"));
-					double largestep = Double.parseDouble(scene
-							.findSetting("Integrator.largestepprobability"));
+								File dataPBRTFile = new File(image
+										.getAbsolutePath().replaceAll(".pfm$",
+												".pbrt"));
+								if (!dataPBRTFile.exists()) {
+									System.err
+											.format("missing .pbrt scene file for %s!\n",
+													dataPBRTFile
+															.getAbsolutePath());
+									continue;
+								}
 
-					// verify the settings
-					if (Math.abs(sigma - sigmaFolderSigma) > 1e-8)
-						throw new IllegalStateException(
-								"mismatch between folder's sigma and the .pbrt file sigma! "
-										+ sigma + " != " + sigmaFolderSigma);
-					if (Math.abs(largestep - largestepFolderLargeStep) > 1e-8)
-						throw new IllegalStateException(
-								"mismatch between folder's largestep and the .pbrt file largestep! "
-										+ largestep + " != "
-										+ largestepFolderLargeStep);
+								PBRTScene scene = PBRTParser
+										.parse(dataPBRTFile);
+								double sceneSigma = Double.parseDouble(scene
+										.findSetting("Integrator.sigma"));
+								double sceneLargeStep = Double
+										.parseDouble(scene
+												.findSetting("Integrator.largestepprobability"));
 
-					System.out.format("%.10f %.10f : %.16f\n", sigma,
-							largestep, mse);
+								// verify the settings
+								if (Math.abs(sceneSigma - sigma) > 1e-8)
+									throw new IllegalStateException(
+											"mismatch between folder's sigma and the .pbrt file sigma! "
+													+ sceneSigma + " != "
+													+ sigma);
+								if (Math.abs(sceneLargeStep - largestep) > 1e-8)
+									throw new IllegalStateException(
+											"mismatch between folder's largestep and the .pbrt file largestep! "
+													+ sceneLargeStep + " != "
+													+ largestep);
 
-					/*------------------------------------------------------------------
-					 * Add the statistics
-					 *----------------------------------------------------------------*/
+								statistics.add(mse);
+							} catch (IOException e) {
+							}
+						}
 
-					TreeMap<Double, Statistics> map = dataMap.get(sigma);
-					if (map == null) {
-						map = new TreeMap<Double, Statistics>();
-						dataMap.put(sigma, map);
-					}
+						/*------------------------------------------------------------------
+						 * Add the statistics
+						 *----------------------------------------------------------------*/
 
-					Statistics statistics = map.get(largestep);
-					if (statistics == null) {
-						statistics = new Statistics();
-						map.put(largestep, statistics);
-					}
+						lock.lock();
 
-					statistics.add(mse);
-				}
+						TreeMap<Double, Statistics> largestepData = data
+								.get(sigma);
+
+						if (largestepData == null) {
+							largestepData = new TreeMap<Double, Statistics>();
+							data.put(sigma, largestepData);
+						}
+
+						largestepData.put(largestep, statistics);
+
+						System.out.format("%.10f %.10f : %.16f\n", sigma,
+								largestep, statistics.getAverage());
+
+						lock.unlock();
+					};
+				};
+				service.submit(thread);
 			}
+		}
+
+		service.shutdown();
+		try {
+			service.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 
 		/***********************************************************************
@@ -313,7 +351,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
 			writer.write("sigma largestep average median std variance size\n");
 
-			for (Entry<Double, TreeMap<Double, Statistics>> e1 : dataMap
+			for (Entry<Double, TreeMap<Double, Statistics>> e1 : data
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
 					double sigma = e1.getKey();
@@ -369,7 +407,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		builder.append(String.format("    %-40s %.10f\n", "largestep:",
 				bestAverageLargeStep));
 
-		Statistics bestAverageStatistics = dataMap.get(bestAverageSigma).get(
+		Statistics bestAverageStatistics = data.get(bestAverageSigma).get(
 				bestAverageLargeStep);
 
 		builder.append(String.format("    %-40s %.10f\n", "average mse:",
@@ -394,7 +432,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		builder.append(String.format("    %-40s %.10f\n", "largestep:",
 				bestMedianLargeStep));
 
-		Statistics bestMedianStatistics = dataMap.get(bestMedianSigma).get(
+		Statistics bestMedianStatistics = data.get(bestMedianSigma).get(
 				bestMedianLargeStep);
 
 		builder.append(String.format("    %-40s %.10f\n", "average mse:",
