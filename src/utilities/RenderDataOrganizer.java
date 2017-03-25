@@ -161,8 +161,8 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 				System.out.format("could not find seed in filename \"%s\"",
 						filename);
 				hasSeed = false;
+			} else
 				seed = Long.parseLong(seedMatcher.group(1));
-			}
 
 			double sigma = Double.parseDouble(sigmaMatcher.group(1));
 			double largestep = Double.parseDouble(largestepMatcher.group(1));
