@@ -65,8 +65,6 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 	 */
 	@Override
 	public void handleArgument(String argument, CommandLineArguments arguments) {
-		super.handleArgument(argument, arguments);
-
 		File file = new File(argument);
 		if (!file.exists())
 			throw new IllegalArgumentException(
