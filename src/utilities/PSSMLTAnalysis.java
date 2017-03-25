@@ -2,12 +2,14 @@ package utilities;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import pbrt.PBRTParser;
 import pbrt.PBRTScene;
@@ -26,6 +28,60 @@ import cli.CommandLineArguments;
  * 
  */
 public class PSSMLTAnalysis extends CommandLineAdapter {
+	/**
+	 * 
+	 */
+	private static final Pattern sigmaPattern = Pattern
+			.compile("sigma\\-([0-9]*\\.)?[0-9]+");
+
+	/**
+	 * 
+	 */
+	private static final Pattern largestepPattern = Pattern
+			.compile("largestep\\-([0-9]*\\.)?[0-9]+");
+
+	/**
+	 * 
+	 */
+	private static final FileFilter sigmaFilter = new FileFilter() {
+		@Override
+		public boolean accept(File file) {
+			return file.isDirectory()
+					&& sigmaPattern.matcher(file.getName()).matches();
+		};
+	};
+
+	/**
+	 * 
+	 */
+	private static final FileFilter largestepFilter = new FileFilter() {
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.io.FileFilter#accept(java.io.File)
+		 */
+		@Override
+		public boolean accept(File file) {
+			return file.isDirectory()
+					&& largestepPattern.matcher(file.getName()).matches();
+		};
+	};
+
+	/**
+	 * 
+	 */
+	private static final FileFilter pfmFilter = new FileFilter() {
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.io.FileFilter#accept(java.io.File)
+		 */
+		@Override
+		public boolean accept(File file) {
+			return file.isFile() && file.getName().endsWith(".pfm");
+		}
+	};
+
 	/**
 	 * 
 	 */
@@ -146,86 +202,103 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		final PFMImage referenceImage = PFMReader.read(referenceImageFile);
 
 		/***********************************************************************
-		 * Find all the rendered data
-		 **********************************************************************/
-
-		final File[] data = dataFolder.listFiles(new FilenameFilter() {
-			/*
-			 * (non-Javadoc)
-			 * 
-			 * @see java.io.FilenameFilter#accept(java.io.File,
-			 * java.lang.String)
-			 */
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".pfm");
-			}
-		});
-		Arrays.sort(data);
-
-		/***********************************************************************
 		 * Find the best settings
 		 **********************************************************************/
 
 		TreeMap<Double, TreeMap<Double, Statistics>> dataMap = new TreeMap<Double, TreeMap<Double, Statistics>>();
 
-		for (File dataImageFile : data) {
-			/*------------------------------------------------------------------
-			 * Calculate the mean squared error
-			 *----------------------------------------------------------------*/
+		File[] sigmaFolders = dataFolder.listFiles(sigmaFilter);
 
-			String dataImageFilename = dataImageFile.getName();
-			PFMImage dataImage = PFMReader.read(dataImageFile);
-			double mse = PFMUtil.MSE(dataImage, referenceImage);
+		for (File sigmaFolder : sigmaFolders) {
+			final String sigmaFolderName = sigmaFolder.getName();
+			final double sigmaFolderSigma = Double.parseDouble(sigmaFolderName
+					.replaceAll("sigma\\-", ""));
 
-			/*------------------------------------------------------------------
-			 * Find the relevant parameter in the scene file
-			 *----------------------------------------------------------------*/
+			File[] largestepFolders = sigmaFolder.listFiles(largestepFilter);
 
-			File dataPBRTFile = new File(dataFolder,
-					dataImageFilename.replaceAll(".pfm$", ".pbrt"));
-			if (!dataPBRTFile.exists()) {
-				System.err.format("missing .pbrt scene file for %s!",
-						dataPBRTFile.getAbsolutePath());
-				continue;
+			for (File largestepFolder : largestepFolders) {
+				final String largestepFolderName = largestepFolder.getName();
+				final double largestepFolderLargeStep = Double
+						.parseDouble(largestepFolderName.replaceAll(
+								"largestep\\-", ""));
+
+				File[] images = largestepFolder.listFiles(pfmFilter);
+
+				for (File image : images) {
+					/*------------------------------------------------------------------
+					 * Calculate the mean squared error
+					 *----------------------------------------------------------------*/
+
+					String dataImageFilename = image.getName();
+					PFMImage dataImage = PFMReader.read(image);
+					double mse = PFMUtil.MSE(dataImage, referenceImage);
+
+					/*------------------------------------------------------------------
+					 * Find the relevant parameter in the scene file
+					 *----------------------------------------------------------------*/
+
+					File dataPBRTFile = new File(dataFolder,
+							dataImageFilename.replaceAll(".pfm$", ".pbrt"));
+					if (!dataPBRTFile.exists()) {
+						System.err.format("missing .pbrt scene file for %s!",
+								dataPBRTFile.getAbsolutePath());
+						continue;
+					}
+
+					PBRTScene scene = PBRTParser.parse(dataPBRTFile);
+					double sigma = Double.parseDouble(scene
+							.findSetting("Integrator.sigma"));
+					double largestep = Double.parseDouble(scene
+							.findSetting("Integrator.largestepprobability"));
+
+					// verify the settings
+					if (Math.abs(sigma - sigmaFolderSigma) > 1e-8)
+						throw new IllegalStateException(
+								"mismatch between folder's sigma and the .pbrt file sigma! "
+										+ sigma + " != " + sigmaFolderSigma);
+					if (Math.abs(largestep - largestepFolderLargeStep) > 1e-8)
+						throw new IllegalStateException(
+								"mismatch between folder's largestep and the .pbrt file largestep! "
+										+ largestep + " != "
+										+ largestepFolderLargeStep);
+
+					System.out.format("%.10f %.10ff : %.16f\n", sigma, largestep, mse);
+
+					/*------------------------------------------------------------------
+					 * Add the statistics
+					 *----------------------------------------------------------------*/
+
+					TreeMap<Double, Statistics> map = dataMap.get(sigma);
+					if (map == null) {
+						map = new TreeMap<Double, Statistics>();
+						dataMap.put(sigma, map);
+					}
+
+					Statistics statistics = map.get(largestep);
+					if (statistics == null) {
+						statistics = new Statistics();
+						map.put(largestep, statistics);
+					}
+
+					statistics.add(mse);
+				}
 			}
-
-			PBRTScene scene = PBRTParser.parse(dataPBRTFile);
-			double sigma = Double.parseDouble(scene
-					.findSetting("Integrator.sigma"));
-			double largestep = Double.parseDouble(scene
-					.findSetting("Integrator.largestepprobability"));
-
-			System.out.format("%f %f : %f\n", sigma, largestep, mse);
-
-			/*------------------------------------------------------------------
-			 * Add the statistics
-			 *----------------------------------------------------------------*/
-
-			TreeMap<Double, Statistics> map = dataMap.get(sigma);
-			if (map == null) {
-				map = new TreeMap<Double, Statistics>();
-				dataMap.put(sigma, map);
-			}
-
-			Statistics statistics = map.get(largestep);
-			if (statistics == null) {
-				statistics = new Statistics();
-				map.put(largestep, statistics);
-			}
-
-			statistics.add(mse);
 		}
 
 		/***********************************************************************
 		 * Write the data and find the optimal settings
 		 **********************************************************************/
 
-		double bestSigma = 0;
-		double bestLargeStep = 0;
+		double bestAverageSigma = Double.NaN;
+		double bestAverageLargeStep = Double.NaN;
 		double bestAverage = Double.POSITIVE_INFINITY;
-		double minimum = Double.POSITIVE_INFINITY;
-		double maximum = Double.NEGATIVE_INFINITY;
+		double minimumAverage = Double.POSITIVE_INFINITY;
+		double maximumAverage = Double.NEGATIVE_INFINITY;
+		double bestMedianSigma = Double.NaN;
+		double bestMedianLargeStep = Double.NaN;
+		double bestMedian = Double.POSITIVE_INFINITY;
+		double minimumMedian = Double.POSITIVE_INFINITY;
+		double maximumMedian = Double.NEGATIVE_INFINITY;
 
 		String outputDirectoryName = String.format("%s/%s",
 				getStringSetting("output"), sceneName);
@@ -252,36 +325,96 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 							"%.16f %.16f %.16f %.16f %.16f %.16f %d\n", sigma,
 							largeStep, average, median, std, variance, size));
 
-					if (median < bestAverage) {
+					// keep track of the best average setting
+					if (average < bestAverage) {
 						bestAverage = median;
-						bestSigma = sigma;
-						bestLargeStep = largeStep;
+						bestAverageSigma = sigma;
+						bestAverageLargeStep = largeStep;
 					}
-					if (median < minimum)
-						minimum = median;
-					if (median > maximum)
-						maximum = median;
+
+					if (average < minimumAverage)
+						minimumAverage = average;
+					if (average > maximumAverage)
+						maximumAverage = average;
+
+					// keep track of the best median setting
+					if (median < bestMedian) {
+						minimumMedian = median;
+						bestMedianSigma = sigma;
+						bestMedianLargeStep = largeStep;
+					}
+					if (median < minimumMedian)
+						minimumMedian = median;
+					if (median > maximumMedian)
+						maximumMedian = median;
 
 				}
 				writer.write("\n");
 			}
 		}
 
-		System.out.format("[ PSSMLT Analysis %s ] \n", sceneName);
-		System.out.format("sigma:                       %.10f\n", bestSigma);
-		System.out
-				.format("large step probability:      %.10f\n", bestLargeStep);
-		Statistics statistics = dataMap.get(bestSigma).get(bestLargeStep);
-		System.out.format("n:                           %d\n"
-				+ "average mse:                 %.10f\n"
-				+ "median mse:                  %.10f\n"
-				+ "standard deviation of mse:   %.10f\n"
-				+ "variance of mse:             %.10f\n"
-				+ "minimum mse:                 %.10f\n"
-				+ "maximum mse:                 %.10f\n", statistics.size(),
-				statistics.getAverage(), statistics.getMedian(),
-				statistics.getStandardDeviation(), statistics.getVariance(),
-				statistics.getMinimum(), statistics.getMaximum());
+		/***********************************************************************
+		 * Write the results
+		 **********************************************************************/
+
+		StringBuilder builder = new StringBuilder(String.format(
+				"[ PSSMLT Analysis %s ] \n", sceneName));
+		builder.append("  Optimal settings (based on average)\n");
+		builder.append(String.format("    %-40s %.10f\n", "sigma:",
+				bestAverageSigma));
+		builder.append(String.format("    %-40s %.10f\n", "largestep:",
+				bestAverageLargeStep));
+
+		Statistics bestAverageStatistics = dataMap.get(bestAverageSigma).get(
+				bestAverageLargeStep);
+
+		builder.append(String.format("    %-40s %.10f\n", "average mse:",
+				bestAverageStatistics.getAverage()));
+		builder.append(String.format("    %-40s %.10f\n", "median mse:",
+				bestAverageStatistics.getMedian()));
+		builder.append(String.format("    %-40s %.10f\n",
+				"standard deviation of mse:",
+				bestAverageStatistics.getStandardDeviation()));
+		builder.append(String.format("    %-40s %.10f\n", "variance of mse:",
+				bestAverageStatistics.getVariance()));
+		builder.append(String.format("    %-40s %.10f\n", "minimum mse:",
+				bestAverageStatistics.getMinimum()));
+		builder.append(String.format("    %-40s %.10f\n", "maximum mse:",
+				bestAverageStatistics.getMaximum()));
+		builder.append(String.format("    %-40s %d\n", "statistic size:",
+				bestAverageStatistics.size()));
+
+		builder.append("  Optimal settings (based on median)\n");
+		builder.append(String.format("    %-40s %.10f\n", "sigma:",
+				bestMedianSigma));
+		builder.append(String.format("    %-40s %.10f\n", "largestep:",
+				bestMedianLargeStep));
+
+		Statistics bestMedianStatistics = dataMap.get(bestMedianSigma).get(
+				bestMedianLargeStep);
+
+		builder.append(String.format("    %-40s %.10f\n", "average mse:",
+				bestMedianStatistics.getAverage()));
+		builder.append(String.format("    %-40s %.10f\n", "median mse:",
+				bestMedianStatistics.getMedian()));
+		builder.append(String.format("    %-40s %.10f\n",
+				"standard deviation of mse:",
+				bestMedianStatistics.getStandardDeviation()));
+		builder.append(String.format("    %-40s %.10f\n", "variance of mse:",
+				bestMedianStatistics.getVariance()));
+		builder.append(String.format("    %-40s %.10f\n", "minimum mse:",
+				bestMedianStatistics.getMinimum()));
+		builder.append(String.format("    %-40s %.10f\n", "maximum mse:",
+				bestMedianStatistics.getMaximum()));
+		builder.append(String.format("    %-40s %d\n", "statistic size:",
+				bestMedianStatistics.size()));
+
+		System.out.println(builder);
+
+		File results = new File(outputDirectory, sceneName + "-results.tex");
+		try (BufferedWriter writer = Files.newBufferedWriter(results.toPath())) {
+			writer.write(builder.toString());
+		}
 
 		/***********************************************************************
 		 * Generate tikz plot data
@@ -294,9 +427,9 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 			writer.write("\\usepackage{pgfplots}\n");
 			writer.write("\\begin{document}\n");
 			writer.write("\t\\begin{tikzpicture}\n");
-			writer.write("\t\t\\begin{axis}view={-20}{20}, grid=both]\n");
-			writer.write("\t\t\t\\addplot3[surf] table[x=sigma, y=largestep, z=average] {" + sceneName
-					+ ".txt};\n");
+			writer.write("\t\t\\begin{axis}[view={-20}{20}, grid=both]\n");
+			writer.write("\t\t\t\\addplot3[surf] table[x=sigma, y=largestep, z=average] {"
+					+ sceneName + ".txt};\n");
 			writer.write("\t\t\\end{axis}\n");
 			writer.write("\t\\end{tikzpicture}\n");
 			writer.write("\\end{document}\n");
