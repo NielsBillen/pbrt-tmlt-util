@@ -81,6 +81,6 @@ public class MLTUtil extends CommandLineInterface {
 		else if (token.equals("pssmltsettings"))
 			PSSMLTSettingsFinder.main(arguments);
 		else if (token.equals("pssmltorganizer"))
-			RenderDataOrganizer.
+			RenderDataOrganizer.main(arguments);
 	}
 }
