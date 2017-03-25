@@ -92,8 +92,7 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 			 */
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.contains("sigma") && name.contains("largestep")
-						&& name.contains("seed");
+				return name.contains("sigma") && name.contains("largestep");
 			}
 		});
 
@@ -116,12 +115,6 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 			if (!largestepMatcher.find()) {
 				System.out.format(
 						"could not find large step in filename \"%s\"",
-						filename);
-				continue;
-			}
-			Matcher seedMatcher = seedPattern.matcher(filename);
-			if (!seedMatcher.find()) {
-				System.out.format("could not find seed in filename \"%s\"",
 						filename);
 				continue;
 			}
@@ -161,16 +154,18 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 				continue;
 			}
 
+			boolean hasSeed = true;
+			long seed = 0;
 			Matcher seedMatcher = seedPattern.matcher(filename);
 			if (!seedMatcher.find()) {
 				System.out.format("could not find seed in filename \"%s\"",
 						filename);
-				continue;
+				hasSeed = false;
+				seed = Long.parseLong(seedMatcher.group(1));
 			}
 
 			double sigma = Double.parseDouble(sigmaMatcher.group(1));
 			double largestep = Double.parseDouble(largestepMatcher.group(1));
-			long seed = Long.parseLong(seedMatcher.group(1));
 
 			String sigmaDirectoryName = String.format("sigma-%s",
 					Printer.print(sigma));
@@ -196,8 +191,15 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 				counter.put(key, id + 1);
 			}
 
-			String renamed = String.format("%s-pssmlt-%d-%d-seed-%d-id-%d",
-					scene, id, totalOccurences, seed, uniqueIdentifier++);
+			String renamed;
+
+			if (hasSeed) {
+				renamed = String.format("%s-pssmlt-%d-%d-seed-%d-id-%d", scene,
+						id, totalOccurences, seed, uniqueIdentifier++);
+			} else {
+				renamed = String.format("%s-pssmlt-%d-%d-id-%d", scene, id,
+						totalOccurences, uniqueIdentifier++);
+			}
 
 			// perform moves
 			String[] extensions = new String[] { "pfm", "exr", "txt", "pbrt",
@@ -215,7 +217,6 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 							"was about to overwrite file!");
 				}
 
-
 				if (!orignalFile.renameTo(renamedFile))
 					System.err.format("failed to move %s to %s...\n",
 							orignalFile.getName(), renamedFile.getName());
@@ -223,6 +224,6 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 
 		}
 
-//		System.out.println(total);
+		// System.out.println(total);
 	}
 }
