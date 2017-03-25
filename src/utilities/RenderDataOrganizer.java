@@ -72,18 +72,18 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 	 */
 	@Override
 	public void handleArgument(String argument, CommandLineArguments arguments) {
-		File file = new File(argument);
-		if (!file.exists())
+		File directory = new File(argument);
+		if (!directory.exists())
 			throw new IllegalArgumentException(
 					"the given directory does not exist!");
-		if (!file.isDirectory())
+		if (!directory.isDirectory())
 			throw new IllegalArgumentException(
 					"the given file corresponding to the given argument \""
 							+ argument + "\" exists but is not a directory!");
 
-		String scene = file.getName();
+		String scene = directory.getName();
 
-		File[] pfms = file.listFiles(new FilenameFilter() {
+		File[] pfms = directory.listFiles(new FilenameFilter() {
 			/*
 			 * (non-Javadoc)
 			 * 
@@ -178,7 +178,7 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 					Printer.print(largestep));
 			String key = sigmaDirectoryName + "/" + largestepDirectoryName;
 
-			File pfmDirectory = new File(file, key);
+			File pfmDirectory = new File(directory, key);
 			if (!FileUtil.mkdirs(pfmDirectory)) {
 				System.out
 						.println("could not create the directory to store the files in!");
@@ -198,10 +198,25 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 			String renamed = String.format("%s-pssmlt-%d-%d-seed-%d-id-%d",
 					scene, id, totalOccurences, seed, uniqueIdentifier++);
 
-			File renamedFile = new File(pfmDirectory, renamed + ".pfm");
+			// perform moves
+			String[] extensions = new String[] { "pfm", "exr", "txt", "pbrt" };
+			for (String extension : extensions) {
+				File orignalFile = new File(directory, filename + "."
+						+ extension);
+				File renamedFile = new File(pfmDirectory, renamed + "."
+						+ extension);
 
-			System.out.format("moving %s to %s...\n", pfm.getAbsolutePath(),
-					renamedFile.getAbsolutePath());
+				System.out.format("moving %s to %s...\n",
+						orignalFile.getName(), renamedFile.getName());
+
+				if (!orignalFile.renameTo(renamedFile))
+					System.err.format("failed to move %s to %s...\n",
+							orignalFile.getName(), renamedFile.getName());
+				else {
+					System.out.format("moved %s to %s...\n",
+							orignalFile.getName(), renamedFile.getName());
+				}
+			}
 
 		}
 
