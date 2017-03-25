@@ -331,7 +331,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 
 					// keep track of the best average setting
 					if (average < bestAverage) {
-						bestAverage = median;
+						bestAverage = average;
 						bestAverageSigma = sigma;
 						bestAverageLargeStep = largeStep;
 					}
