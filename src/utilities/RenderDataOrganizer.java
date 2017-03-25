@@ -81,6 +81,8 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 					"the given file corresponding to the given argument \""
 							+ argument + "\" exists but is not a directory!");
 
+		String scene = file.getName();
+
 		File[] pfms = file.listFiles(new FilenameFilter() {
 			/*
 			 * (non-Javadoc)
@@ -185,6 +187,21 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 			Integer totalOccurences = total.get(key);
 			if (totalOccurences == null)
 				throw new IllegalStateException("total occurences cannot be 0!");
+			Integer id = counter.get(key);
+			if (id == null) {
+				id = 1;
+				counter.put(key, id + 1);
+			} else {
+				counter.put(key, id + 1);
+			}
+
+			String renamed = String.format("%s-pssmlt-%d-%d-seed-%d-id-%d",
+					scene, id, totalOccurences, seed, uniqueIdentifier++);
+
+			File renamedFile = new File(pfmDirectory, renamed + ".pfm");
+
+			System.out.format("moving %s to %s...\n", pfm.getAbsolutePath(),
+					renamedFile.getAbsolutePath());
 
 		}
 
