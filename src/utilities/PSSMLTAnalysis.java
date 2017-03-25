@@ -237,10 +237,10 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 					 * Find the relevant parameter in the scene file
 					 *----------------------------------------------------------------*/
 
-					File dataPBRTFile = new File(dataFolder,
-							dataImageFilename.replaceAll(".pfm$", ".pbrt"));
+					File dataPBRTFile = new File(image.getAbsolutePath()
+							.replaceAll(".pfm$", ".pbrt"));
 					if (!dataPBRTFile.exists()) {
-						System.err.format("missing .pbrt scene file for %s!",
+						System.err.format("missing .pbrt scene file for %s!\n",
 								dataPBRTFile.getAbsolutePath());
 						continue;
 					}
@@ -262,7 +262,8 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 										+ largestep + " != "
 										+ largestepFolderLargeStep);
 
-					System.out.format("%.10f %.10ff : %.16f\n", sigma, largestep, mse);
+					System.out.format("%.10f %.10ff : %.16f\n", sigma,
+							largestep, mse);
 
 					/*------------------------------------------------------------------
 					 * Add the statistics
