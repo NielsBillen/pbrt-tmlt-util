@@ -3,7 +3,6 @@ package utilities;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -94,6 +93,8 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		addStringSetting("output",
 				"Sets the output directory to the given value", new File(
 						"pssmltsettings").getAbsolutePath());
+
+		addExample("--directory /home/niels/renderdata --output /home/niels/analysis reference/kitchen pssmlt/kitchen");
 	}
 
 	/**
@@ -208,6 +209,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 		TreeMap<Double, TreeMap<Double, Statistics>> dataMap = new TreeMap<Double, TreeMap<Double, Statistics>>();
 
 		File[] sigmaFolders = dataFolder.listFiles(sigmaFilter);
+		Arrays.sort(sigmaFolders);
 
 		for (File sigmaFolder : sigmaFolders) {
 			final String sigmaFolderName = sigmaFolder.getName();
@@ -215,6 +217,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 					.replaceAll("sigma\\-", ""));
 
 			File[] largestepFolders = sigmaFolder.listFiles(largestepFilter);
+			Arrays.sort(largestepFolders);
 
 			for (File largestepFolder : largestepFolders) {
 				final String largestepFolderName = largestepFolder.getName();
@@ -223,13 +226,13 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 								"largestep\\-", ""));
 
 				File[] images = largestepFolder.listFiles(pfmFilter);
+				Arrays.sort(images);
 
 				for (File image : images) {
 					/*------------------------------------------------------------------
 					 * Calculate the mean squared error
 					 *----------------------------------------------------------------*/
 
-					String dataImageFilename = image.getName();
 					PFMImage dataImage = PFMReader.read(image);
 					double mse = PFMUtil.MSE(dataImage, referenceImage);
 
@@ -262,7 +265,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 										+ largestep + " != "
 										+ largestepFolderLargeStep);
 
-					System.out.format("%.10f %.10ff : %.16f\n", sigma,
+					System.out.format("%.10f %.10f : %.16f\n", sigma,
 							largestep, mse);
 
 					/*------------------------------------------------------------------
@@ -340,7 +343,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 
 					// keep track of the best median setting
 					if (median < bestMedian) {
-						minimumMedian = median;
+						bestMedian = median;
 						bestMedianSigma = sigma;
 						bestMedianLargeStep = largeStep;
 					}
