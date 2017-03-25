@@ -92,8 +92,8 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 			 */
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.endsWith(".pfm") && name.contains("sigma")
-						&& name.contains("largestep") && name.contains("seed");
+				return name.contains("sigma") && name.contains("largestep")
+						&& name.contains("seed");
 			}
 		});
 
@@ -103,7 +103,7 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 
 		// Count for each setting the number of occurrences
 		for (File pfm : pfms) {
-			String filename = pfm.getName().replaceAll(".pfm$", "");
+			String filename = pfm.getName().replaceAll("\\.[a-z]+$", "");
 
 			Matcher sigmaMatcher = sigmaPattern.matcher(filename);
 			if (!sigmaMatcher.find()) {
@@ -144,7 +144,7 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 
 		// Count for each setting the number of occurrences
 		for (File pfm : pfms) {
-			String filename = pfm.getName().replaceAll(".pfm$", "");
+			String filename = pfm.getName().replaceAll("\\.[a-z]+$", "");
 
 			Matcher sigmaMatcher = sigmaPattern.matcher(filename);
 			if (!sigmaMatcher.find()) {
@@ -180,8 +180,9 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 
 			File pfmDirectory = new File(directory, key);
 			if (!FileUtil.mkdirs(pfmDirectory)) {
-				System.out
+				System.err
 						.println("could not create the directory to store the files in!");
+				continue;
 			}
 
 			Integer totalOccurences = total.get(key);
@@ -199,12 +200,16 @@ public class RenderDataOrganizer extends CommandLineAdapter {
 					scene, id, totalOccurences, seed, uniqueIdentifier++);
 
 			// perform moves
-			String[] extensions = new String[] { "pfm", "exr", "txt", "pbrt" };
+			String[] extensions = new String[] { "pfm", "exr", "txt", "pbrt",
+					"png" };
 			for (String extension : extensions) {
 				File orignalFile = new File(directory, filename + "."
 						+ extension);
 				File renamedFile = new File(pfmDirectory, renamed + "."
 						+ extension);
+
+				if (!orignalFile.exists())
+					continue;
 
 				System.out.format("moving %s to %s...\n",
 						orignalFile.getName(), renamedFile.getName());
