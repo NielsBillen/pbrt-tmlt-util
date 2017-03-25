@@ -6,6 +6,7 @@ import utilities.BibTexCleaner;
 import utilities.PBRTCleaner;
 import utilities.PSSMLTAnalysis;
 import utilities.PSSMLTSettingsFinder;
+import utilities.RenderDataOrganizer;
 import cli.CommandLineArguments;
 import cli.CommandLineInterface;
 
@@ -79,5 +80,7 @@ public class MLTUtil extends CommandLineInterface {
 			PSSMLTAnalysis.main(arguments);
 		else if (token.equals("pssmltsettings"))
 			PSSMLTSettingsFinder.main(arguments);
+		else if (token.equals("pssmltorganizer"))
+			RenderDataOrganizer.
 	}
 }
