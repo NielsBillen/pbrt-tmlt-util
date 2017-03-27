@@ -7,6 +7,8 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
+import util.Statistics;
+
 /**
  * The PFMImage describes an image in the Portable Float Map format.
  * 
@@ -48,12 +50,10 @@ public class PFMImage {
 	 * @param height
 	 * @param color
 	 */
-	public PFMImage(int width, int height, boolean color) {
+	public PFMImage(int width, int height) {
 		this.width = width;
 		this.height = height;
-		this.floats = new float[width * height * (color ? 3 : 1)];
-
-		Arrays.fill(this.floats, 0);
+		this.floats = new float[width * height * 3];
 	}
 
 	/**
@@ -88,34 +88,75 @@ public class PFMImage {
 		if (floats == null)
 			throw new NullPointerException("the given float array is null!");
 
-		int res = width * height;
+		final int resolution = width * height;
+		final boolean gray;
 
-		if (res != floats.length && 3 * res != floats.length)
-			throw new IllegalArgumentException(String.format(
-					"the number of floats must match the resolution of "
-							+ "the image! the number of given floats is"
-							+ " %i, but should be %i for a gray image "
-							+ "or %i for a color image!", floats.length, res,
-					3 * res));
+		if (floats.length == resolution)
+			gray = true;
+		else if (floats.length == 3.0 * resolution)
+			gray = false;
+		else
+			throw new IllegalArgumentException(
+					"the number of floats must either be equal to "
+							+ resolution + " or " + (3 * resolution)
+							+ " but was " + floats.length);
 
-		for (int i = 0; i < floats.length; ++i)
-			if (floats[i] < 0) {
-
-				int index = i / 3;
-				int x = index % width;
-				int y = index / width;
-
-				String[] name = new String[] { "red", "green", "blue" };
-
-				System.err
-						.println("color component cannot be negative, but was "
-								+ floats[i] + " at index " + i + " (" + x + ","
-								+ y + ") color " + name[i % 3]);
-			}
-
+		// allocate the floats
 		this.width = width;
 		this.height = height;
-		this.floats = Arrays.copyOf(floats, floats.length);
+		this.floats = new float[3 * resolution];
+
+		// copy the floats
+		if (gray) {
+			for (int i = 0; i < floats.length; ++i) {
+				float value = floats[i];
+				for (int j = 0; j < 3; ++j)
+					setFloat(3 * i + j, value);
+			}
+		} else {
+			for (int i = 0; i < floats.length; ++i) {
+				setFloat(i, floats[i]);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public PFMImage scale(float value) {
+		final int n = nbOfFloats();
+		final PFMImage result = new PFMImage(width, height);
+
+		for (int i = 0; i < n; ++i)
+			result.setFloat(i, getFloat(i) * value);
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public PFMImage divide(float value) {
+		if (value == 0)
+			throw new ArithmeticException("dividing by zero!");
+		return scale(1.f / value);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Statistics getStatistics() {
+		Statistics statistics = new Statistics();
+
+		for (int i = 0; i < nbOfFloats(); ++i)
+			statistics.add(getFloat(i));
+
+		return statistics;
+
 	}
 
 	/**
@@ -143,6 +184,23 @@ public class PFMImage {
 	 */
 	public void setFloat(int i, float value)
 			throws ArrayIndexOutOfBoundsException {
+		if (value < 0) {
+			int j = i / 3;
+			int k = i % 3;
+			int x = j % width;
+			int y = j / width;
+			String color;
+			if (k == 0)
+				color = "red";
+			else if (k == 1)
+				color = "green";
+			else
+				color = "blue";
+
+			System.err.format("Warning: pixel at coordinate (%d, %d) has "
+					+ "negative value %.16f for the %s color component!", x, y,
+					value, color);
+		}
 		floats[i] = value;
 	}
 
@@ -153,24 +211,6 @@ public class PFMImage {
 	 */
 	public int nbOfFloats() {
 		return floats.length;
-	}
-
-	/**
-	 * Returns whether this image is a gray scale image.
-	 * 
-	 * @return whether this image is a gray scale image.
-	 */
-	public boolean isGrayScale() {
-		return nbOfFloats() == width * height;
-	}
-
-	/**
-	 * Returns whether this image is a color image.
-	 * 
-	 * @return whether this image is a color image.
-	 */
-	public boolean isColor() {
-		return nbOfFloats() == 3 * width * height;
 	}
 
 	/**
@@ -190,56 +230,40 @@ public class PFMImage {
 	 *         the specified pixel in the image.
 	 */
 	public float[] getColorAt(int x, int y) {
-		if (isGrayScale()) {
-			final int o = y * width + x;
-			final float c = getFloat(o);
-			return new float[] { c, c, c };
-		} else {
-			final int o = 3 * (y * width + x);
-			return new float[] { getFloat(o), getFloat(o + 1), getFloat(o + 2) };
-		}
+		final int o = 3 * (y * width + x);
+		return Arrays.copyOfRange(floats, o, o + 3);
 	}
 
 	/**
-	 * Sets the color at the given position to the given color. When this image
-	 * is gray scale, the average of the given colors is taken.
+	 * Sets the color at the given position to the given color.
 	 * 
 	 * @param x
+	 *            the horizontal position of the pixel to set.
 	 * @param y
+	 *            the vertical position of the pixel to set.
 	 * @param color
+	 *            array containing the red, green and blue color components for
+	 *            the pixel.
+	 * @throws NullPointerException
+	 *             when the given color is null.
+	 * @throws IllegalArgumentException
+	 *             when the given array of colors does not have length 3.
+	 * @throws ArrayIndexOutOfBoundsException
+	 *             when the given coordinate position is out of bounds.
+	 * 
 	 */
-	public void setColorAt(int x, int y, float[] color) {
-		if (isGrayScale()) {
-			float c;
-			if (color.length == 1)
-				c = color[0];
-			else if (color.length == 3)
-				c = (color[0] + color[1] + color[2]) / 3.f;
-			else
-				throw new IllegalArgumentException("the given array of colors "
-						+ "does not have length 1 or 3!");
-			int o = y * width + x;
-			setFloat(o, c);
-		} else {
-			if (color.length != 3)
-				throw new IllegalArgumentException(
-						"the given array of colors does not have length 3!");
+	public void setColorAt(int x, int y, float... color)
+			throws NullPointerException, IllegalArgumentException {
+		if (color == null)
+			throw new NullPointerException("the given color is null!");
+		if (color.length != 3)
+			throw new IllegalArgumentException(
+					"the given array of colors does not have length 3!");
 
-			final int o = 3 * (y * width + x);
-			for (int i = 0; i < 3; ++i)
-				setFloat(o + i, color[i]);
-		}
-	}
+		final int o = 3 * (y * width + x);
+		for (int i = 0; i < 3; ++i)
+			setFloat(o + i, color[i]);
 
-	public void normalize() {
-		float maximum = Float.NEGATIVE_INFINITY;
-		for (int i = 0; i < nbOfFloats(); ++i)
-			maximum = Math.max(maximum, getFloat(i));
-		if (maximum != 0) {
-			float inv = 1.f / maximum;
-			for (int i = 0; i < nbOfFloats(); ++i)
-				setFloat(i, getFloat(i) * inv);
-		}
 	}
 
 	/**
@@ -256,19 +280,12 @@ public class PFMImage {
 		int[] rgba = new int[] { 0, 0, 0, 255 };
 
 		for (int i = 0; i < width * height; ++i) {
-			if (isGrayScale()) {
-				rgba[0] = toInt(getFloat(i), gamma);
-				rgba[1] = rgba[0];
-				rgba[2] = rgba[0];
-				result.getRaster().setPixel(i % width, height - 1 - i / width,
-						rgba);
-			} else {
-				rgba[0] = toInt(getFloat(3 * i), gamma);
-				rgba[1] = toInt(getFloat(3 * i + 1), gamma);
-				rgba[2] = toInt(getFloat(3 * i + 2), gamma);
-				result.getRaster().setPixel(i % width, height - 1 - i / width,
-						rgba);
-			}
+			rgba[0] = toInt(getFloat(3 * i), gamma);
+			rgba[1] = toInt(getFloat(3 * i + 1), gamma);
+			rgba[2] = toInt(getFloat(3 * i + 2), gamma);
+			result.getRaster()
+					.setPixel(i % width, height - 1 - i / width, rgba);
+
 		}
 
 		return result;
@@ -304,19 +321,11 @@ public class PFMImage {
 			f[i] = (float) ((floats[i] - min) * inv_range);
 
 		for (int i = 0; i < width * height; ++i) {
-			if (isGrayScale()) {
-				rgba[0] = clamp((int) (255.f * floats[i]), 0, 255);
-				rgba[1] = rgba[0];
-				rgba[2] = rgba[0];
-				result.getRaster().setPixel(i % width, height - 1 - i / width,
-						rgba);
-			} else {
-				rgba[0] = clamp((int) (255.f * f[3 * i]), 0, 255);
-				rgba[1] = clamp((int) (255.f * f[3 * i + 1]), 0, 255);
-				rgba[2] = clamp((int) (255.f * f[3 * i + 2]), 0, 255);
-				result.getRaster().setPixel(i % width, height - 1 - i / width,
-						rgba);
-			}
+			rgba[0] = clamp((int) (255.f * f[3 * i]), 0, 255);
+			rgba[1] = clamp((int) (255.f * f[3 * i + 1]), 0, 255);
+			rgba[2] = clamp((int) (255.f * f[3 * i + 2]), 0, 255);
+			result.getRaster()
+					.setPixel(i % width, height - 1 - i / width, rgba);
 		}
 
 		return result;

@@ -34,74 +34,75 @@ import util.Statistics;
  */
 public class PFMUtil {
 	/**
+	 * Returns the average value of the color components in the image.
+	 * 
+	 * @param image
+	 *            the image to get the average value of .
+	 * @return the average value of the color components in the image.
+	 */
+	public static double getAverage(PFMImage image) throws NullPointerException {
+		if (image == null)
+			throw new NullPointerException("the given image is null!");
+
+		Statistics statistic = new Statistics();
+
+		for (int i = 0; i < image.nbOfFloats(); ++i)
+			statistic.add(image.getFloat(i));
+
+		return statistic.getAverage();
+	}
+
+	/**
 	 * Computes the mean squared error between the two given images.
 	 * 
 	 * @param image1
 	 *            the first image.
-	 * @param reference
+	 * @param image2
 	 *            the second image.
+	 * @param gamma
+	 *            the gamma correction to apply to the colors of the images.
 	 * @throws NullPointerException
 	 *             when one of the images is null.
 	 * @throws IllegalArgumentException
 	 *             when the sizes of the images do not match.
 	 * @return the mean squared error between the two given images.
 	 */
-	public static double MSE(PFMImage image1, PFMImage reference)
+	public static double getRMSE(PFMImage image1, PFMImage image2, double gamma)
 			throws IllegalArgumentException {
 		if (image1 == null)
 			throw new NullPointerException("the first image is null!");
-		if (reference == null)
+		if (image2 == null)
 			throw new NullPointerException("the second image is null!");
-		if (image1.width != reference.width
-				|| image1.height != reference.height)
+		if (gamma <= 0)
+			throw new IllegalArgumentException("the gamma must be positive!");
+		if (image1.width != image2.width || image1.height != image2.height)
 			throw new IllegalArgumentException(
 					"the images do not have matching size!" + image1.width
-							+ "x" + image1.height + " vs " + reference.width
-							+ "x" + reference.height);
+							+ "x" + image1.height + " vs " + image2.width + "x"
+							+ image2.height);
 
-		Statistics statistic = new Statistics();
+		final int n = image1.nbOfFloats();
+		final Statistics statistic = new Statistics();
+		final double invGamma = 1.0 / gamma;
 
-		double s1 = 0;
-		double s2 = 0;
-		double inv = 1.0 / 3.0;
+		for (int i = 0; i < n; i++) {
+			float c1 = image1.getFloat(i);
+			float c2 = image2.getFloat(i);
 
-		for (int y = 0; y < image1.height; ++y) {
-			for (int x = 0; x < image1.width; ++x) {
-				float[] c1 = image1.getColorAt(x, y);
-				float[] c2 = reference.getColorAt(x, y);
+			if (c1 < 0.f)
+				continue;
+			if (c2 < 0.f)
+				continue;
 
-				for (int i = 0; i < 3; ++i) {
-					s1 += c1[i] * inv;
-					s2 += c2[i] * inv;
-				}
-			}
-		}
-		// double invs1 = (image1.height * image1.width) / s1;
-		// double invs2 = (image1.height * image1.width) / s2;
-		double invs1 = 1.0;
-		double invs2 = 1.0;
+			double g1 = Math.pow(c1, invGamma);
+			double g2 = Math.pow(c2, invGamma);
 
-		for (int y = 0; y < image1.height; ++y) {
-			for (int x = 0; x < image1.width; ++x) {
-				float[] c1 = image1.getColorAt(x, y);
-				float[] c2 = reference.getColorAt(x, y);
+			if (g2 == 0)
+				continue;
+			double difference = (g1 - g2) / g2;
+			double squared = difference * difference;
 
-				for (int i = 0; i < 3; ++i) {
-					if (c1[i] < 0)
-						continue;
-					if (c2[i] < 0)
-						continue;
-					double bc1 = Math.pow(c1[i], 1.0 / 2.2) * invs1;
-					double bc2 = Math.pow(c2[i], 1.0 / 2.2) * invs2;
-
-					// double bc1 = c1[i] * invs1;
-					// double bc2 = c2[i] * invs2;
-					double difference = bc1 - bc2;
-					double squared = difference * difference;
-
-					statistic.add(squared);
-				}
-			}
+			statistic.add(squared);
 		}
 
 		return statistic.getAverage();
@@ -112,7 +113,61 @@ public class PFMUtil {
 	 * 
 	 * @param image1
 	 *            the first image.
-	 * @param reference
+	 * @param image2
+	 *            the second image.
+	 * @param gamma
+	 *            the gamma correction to apply to the colors of the images.
+	 * @throws NullPointerException
+	 *             when one of the images is null.
+	 * @throws IllegalArgumentException
+	 *             when the sizes of the images do not match.
+	 * @return the mean squared error between the two given images.
+	 */
+	public static double getMSE(PFMImage image1, PFMImage image2, double gamma)
+			throws IllegalArgumentException {
+		if (image1 == null)
+			throw new NullPointerException("the first image is null!");
+		if (image2 == null)
+			throw new NullPointerException("the second image is null!");
+		if (gamma <= 0)
+			throw new IllegalArgumentException("the gamma must be positive!");
+		if (image1.width != image2.width || image1.height != image2.height)
+			throw new IllegalArgumentException(
+					"the images do not have matching size!" + image1.width
+							+ "x" + image1.height + " vs " + image2.width + "x"
+							+ image2.height);
+
+		final int n = image1.nbOfFloats();
+		final Statistics statistic = new Statistics();
+		final double invGamma = 1.0 / gamma;
+
+		for (int i = 0; i < n; i++) {
+			float c1 = image1.getFloat(i);
+			float c2 = image2.getFloat(i);
+
+			if (c1 < 0.f)
+				continue;
+			if (c2 < 0.f)
+				continue;
+
+			double g1 = Math.pow(c1, invGamma);
+			double g2 = Math.pow(c2, invGamma);
+			double difference = g1 - g2;
+			double squared = difference * difference;
+
+			statistic.add(squared);
+
+		}
+
+		return statistic.getAverage();
+	}
+
+	/**
+	 * Computes the mean squared error between the two given images.
+	 * 
+	 * @param image1
+	 *            the first image.
+	 * @param image2
 	 *            the second image.
 	 * @throws NullPointerException
 	 *             when one of the images is null.
@@ -120,56 +175,38 @@ public class PFMUtil {
 	 *             when the sizes of the images do not match.
 	 * @return the mean squared error between the two given images.
 	 */
-	public static PFMImage mseImage(PFMImage image1, PFMImage reference)
-			throws IllegalArgumentException {
+	public static PFMImage getMSEImage(PFMImage image1, PFMImage image2,
+			double gamma) throws IllegalArgumentException {
 		if (image1 == null)
 			throw new NullPointerException("the first image is null!");
-		if (reference == null)
+		if (image2 == null)
 			throw new NullPointerException("the second image is null!");
-		if (image1.width != reference.width
-				|| image1.height != reference.height)
-			throw new IllegalArgumentException(
-					"the images do not have matching size!" + image1.width
-							+ "x" + image1.height + " vs " + reference.width
-							+ "x" + reference.height);
+		if (image1.width != image2.width || image1.height != image2.height)
+			throw new IllegalArgumentException(String.format(
+					"the images do not have matching size! %dx%d vs %dx%d",
+					image1.width, image1.height, image2.width, image2.height));
 
-		double s1 = 0;
-		double s2 = 0;
-		double inv = 1.0 / 3.0;
+		final int n = image1.nbOfFloats();
+		final PFMImage result = new PFMImage(image1.width, image1.height);
+		final double invGamma = 1.0 / gamma;
 
-		for (int y = 0; y < image1.height; ++y) {
-			for (int x = 0; x < image1.width; ++x) {
-				float[] c1 = image1.getColorAt(x, y);
-				float[] c2 = reference.getColorAt(x, y);
+		for (int i = 0; i < n; ++i) {
+			float c1 = image1.getFloat(i);
+			float c2 = image2.getFloat(i);
 
-				for (int i = 0; i < 3; ++i) {
-					s1 += c1[i] * inv;
-					s2 += c2[i] * inv;
-				}
-			}
-		}
-		double invs1 = (image1.height * image1.width) / s1;
-		double invs2 = (image1.height * image1.width) / s2;
-		final int resolution = image1.width * image1.height;
-		final int nbOfFloats = resolution * 3;
-		float[] floats = new float[nbOfFloats];
-		int index = 0;
+			if (c1 < 0 || c2 < 0)
+				result.setFloat(i, 0.f);
+			else {
+				double g1 = Math.pow(c1, invGamma);
+				double g2 = Math.pow(c2, invGamma);
+				double difference = g1 - g2;
+				double squared = difference * difference;
+				result.setFloat(i, (float) squared);
 
-		for (int y = 0; y < image1.height; ++y) {
-			for (int x = 0; x < image1.width; ++x) {
-				float[] c1 = image1.getColorAt(x, y);
-				float[] c2 = reference.getColorAt(x, y);
-
-				for (int i = 0; i < 3; ++i) {
-					double bc1 = Math.pow(c1[i], 1.0 / 2.2) * invs1;
-					double bc2 = Math.pow(c2[i], 1.0 / 2.2) * invs2;
-					double difference = (bc1 - bc2);
-					floats[index++] = (float) (difference * difference);
-				}
 			}
 		}
 
-		return new PFMImage(image1.width, image1.height, floats);
+		return result;
 	}
 
 	/**
@@ -215,75 +252,15 @@ public class PFMUtil {
 			throw new IllegalArgumentException(
 					"the images do not have matching size!");
 
-		final int resolution = image1.width * image1.height;
-		final int nbOfFloats = 3 * resolution;
-		float[] floats = new float[nbOfFloats];
-		float[] c1, c2;
+		final int n = image1.nbOfFloats();
+		final PFMImage result = new PFMImage(image1.width, image1.height);
+		for (int i = 0; i < n; ++i) {
+			float c1 = image1.getFloat(i);
+			float c2 = image2.getFloat(i);
+			float difference = scale * Math.abs(c1 - c2);
+			result.setFloat(i, difference);
+		}
 
-		int index = 0;
-		for (int y = 0; y < image1.height; ++y)
-			for (int x = 0; x < image1.width; ++x) {
-				c1 = image1.getColorAt(x, y);
-				c2 = image2.getColorAt(x, y);
-
-				for (int i = 0; i < 3; ++i)
-					floats[index++] = scale * Math.abs(c1[i] - c2[i]);
-			}
-
-		return new PFMImage(image1.width, image1.height, floats);
-	}
-
-	/**
-	 * Returns the difference between the two given images scaled by the given
-	 * amount.
-	 * 
-	 * @param image1
-	 *            the first image.
-	 * @param image2
-	 *            the second image.
-	 * @param scale
-	 *            the scale used to scale the difference.
-	 * @throws NullPointerException
-	 *             when one of the images is null.
-	 * @throws IllegalArgumentException
-	 *             when the sizes of the images do not match.
-	 * @return the mean squared error between the two given images.
-	 */
-	public static PFMImage
-			divide(PFMImage image1, PFMImage image2, float scale) {
-		if (image1 == null)
-			throw new NullPointerException("the first image is null!");
-		if (image2 == null)
-			throw new NullPointerException("the second image is null!");
-		if (image1.width != image2.width || image1.height != image2.height)
-			throw new IllegalArgumentException(
-					"the images do not have matching size!");
-
-		final int resolution = image1.width * image1.height;
-		final int nbOfFloats = 3 * resolution;
-		float[] floats = new float[nbOfFloats];
-		float[] c1, c2;
-		float average = 0;
-
-		for (int y = 0; y < image1.height; ++y)
-			for (int x = 0; x < image1.width; ++x) {
-				c1 = image1.getColorAt(x, y);
-				c2 = image2.getColorAt(x, y);
-				int index = 3 * (image1.height * y + x);
-
-				for (int i = 0; i < 3; ++i) {
-					if (c2[i] == 0.0) {
-						floats[index + i] = 1;
-						average += 1;
-					} else {
-						float s = scale * (c1[i] / c2[i]);
-						floats[index + i] = s;
-						average += s;
-					}
-				}
-			}
-
-		System.out.println(average / (3.0 * image1.width * image2.height));
-		return new PFMImage(image1.width, image1.height, floats);
+		return result;
 	}
 }

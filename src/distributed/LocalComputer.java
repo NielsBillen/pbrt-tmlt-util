@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.locks.ReentrantLock;
 
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTScene;
 import task.RenderTaskInterface;
 import task.RenderTaskProgressListener;
 import util.FileUtil;

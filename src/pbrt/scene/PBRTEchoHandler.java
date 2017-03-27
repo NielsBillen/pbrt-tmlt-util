@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 /**
  * Parser handler which prints the PBRT scene file on the command line.

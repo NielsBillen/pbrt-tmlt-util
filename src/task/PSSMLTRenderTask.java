@@ -1,7 +1,7 @@
 package task;
 
-import pbrt.PBRTProperty;
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTProperty;
+import pbrt.scene.PBRTScene;
 
 /**
  * 

@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 import java.util.ArrayList;
 import java.util.Collection;

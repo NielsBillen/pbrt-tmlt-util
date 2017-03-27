@@ -2,7 +2,7 @@ package task;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTScene;
 
 /**
  * Interface which should be implemented by all render tasks.

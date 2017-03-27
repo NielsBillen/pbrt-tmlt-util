@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 public class PBRTRotate extends PBRTElement {
 	private float angle, x, y, z;

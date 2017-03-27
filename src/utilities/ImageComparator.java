@@ -7,6 +7,7 @@ import pfm.PFMImage;
 import pfm.PFMReader;
 import pfm.PFMUtil;
 import pfm.PFMWriter;
+import util.FileUtil;
 import util.Statistics;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
@@ -22,10 +23,13 @@ public class ImageComparator extends CommandLineAdapter {
 	 * @throws NullPointerException
 	 */
 	public ImageComparator() throws NullPointerException {
-		super("imagecomparator", "--reference <image data...>");
+		super("imagecomparator",
+				"--directory <directory> --reference <image data...>");
 
 		File home = new File(System.getProperty("user.home"));
 
+		addStringSetting("directory", "Relative directory to look for files",
+				new File(".").getAbsoluteFile().getParent());
 		addStringSetting("reference", "Filename of the reference image.",
 				new File(home, "renderdata").getAbsolutePath());
 
@@ -49,6 +53,14 @@ public class ImageComparator extends CommandLineAdapter {
 		new ImageComparator().parse(arguments);
 	}
 
+	/**
+	 * 
+	 * @param arguments
+	 */
+	public static void main(CommandLineArguments arguments) {
+		new ImageComparator().parse(arguments);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -59,28 +71,39 @@ public class ImageComparator extends CommandLineAdapter {
 	public void handleArgument(String argument, CommandLineArguments arguments) {
 		System.out.println(argument);
 		try {
-			PFMImage reference = PFMReader.read(getStringSetting("reference"));
+			final String directoryFilename = getStringSetting("directory");
+			final String referenceFilename = getStringSetting("reference");
+			final File referenceFile = FileUtil.get(directoryFilename,
+					referenceFilename);
+			final PFMImage reference = PFMReader.read(referenceFile);
+			final File file = FileUtil.get(directoryFilename, argument);
 
-			File file = new File(argument);
-			String filename = file.getName();
+			final String filename = file.getName();
+
 			System.out.format("[ %s ]\n", filename);
 
 			if (filename.endsWith(".pfm")) {
-				PFMImage image = PFMReader.read(file);
-				double mse = PFMUtil.MSE(image, reference);
-				System.out.format("mse: %.16f\n", mse);
+				final PFMImage image = PFMReader.read(file);
+				final double mse = PFMUtil.getMSE(image, reference, 2.2);
 
-				String extensionless = filename.replaceAll(".pfm$", "");
-				PFMImage difference = PFMUtil.mseImage(image, reference);
-//				difference.normalize();
-				
-				PFMWriter.write(extensionless + "-difference.pfm", difference);
-				difference.write(extensionless + "-difference.png", 1.0);
+				System.out.format("  %-20s: %.16f\n", mse);
 
+				final String extensionless = filename.replaceAll("\\.pfm$", "");
+				final PFMImage mseImage = PFMUtil.getMSEImage(image, reference,
+						2.2);
+
+				PFMWriter.write(extensionless + "-difference.pfm", mseImage);
+				mseImage.write(extensionless + "-difference.png", 1.0);
 			} else if (file.isDirectory()) {
-				Statistics statistics = new Statistics();
+				final Statistics statistics = new Statistics();
 
-				File[] images = file.listFiles(new FilenameFilter() {
+				final File[] images = file.listFiles(new FilenameFilter() {
+					/*
+					 * (non-Javadoc)
+					 * 
+					 * @see java.io.FilenameFilter#accept(java.io.File,
+					 * java.lang.String)
+					 */
 					@Override
 					public boolean accept(File dir, String name) {
 						return name.endsWith(".pfm");
@@ -88,8 +111,8 @@ public class ImageComparator extends CommandLineAdapter {
 				});
 
 				for (File imageFile : images) {
-					PFMImage image = PFMReader.read(imageFile);
-					double mse = PFMUtil.MSE(image, reference);
+					final PFMImage image = PFMReader.read(imageFile);
+					double mse = PFMUtil.getMSE(image, reference, 2.2);
 					statistics.add(mse);
 				}
 

@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 /**
  * Represents an entire PBRT scene.

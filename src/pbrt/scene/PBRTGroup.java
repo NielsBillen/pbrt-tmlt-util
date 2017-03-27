@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 /**
  * Represents a grouping of {@link PBRTElement}s. The children of a group are

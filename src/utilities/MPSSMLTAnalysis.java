@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import pbrt.PBRTParser;
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTParser;
+import pbrt.scene.PBRTScene;
 import pfm.PFMImage;
 import pfm.PFMReader;
 import pfm.PFMUtil;
@@ -25,12 +25,12 @@ import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
 
 /**
+ * Searches the optimal settings for rendering a scene with MPSSMLT integrator.
  * 
  * @author Niels Billen
  * @version 0.1
- * 
  */
-public class PSSMLTAnalysis extends CommandLineAdapter {
+public class MPSSMLTAnalysis extends CommandLineAdapter {
 	/**
 	 * 
 	 */
@@ -88,7 +88,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 	/**
 	 * 
 	 */
-	public PSSMLTAnalysis() {
+	public MPSSMLTAnalysis() {
 		super("pssmltanalysis", "<reference directory> <data directory>");
 
 		addStringSetting("directory",
@@ -106,7 +106,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 	 * @param arguments
 	 */
 	public static void main(String[] arguments) {
-		new PSSMLTAnalysis().parse(arguments);
+		new MPSSMLTAnalysis().parse(arguments);
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 	 * @param arguments
 	 */
 	public static void main(CommandLineArguments arguments) {
-		new PSSMLTAnalysis().parse(arguments);
+		new MPSSMLTAnalysis().parse(arguments);
 	}
 
 	/*
@@ -246,21 +246,22 @@ public class PSSMLTAnalysis extends CommandLineAdapter {
 
 						for (final File image : images) {
 							try {
-								/*------------------------------------------------------------------
+								/*----------------------------------------------
 								 * Calculate the mean squared error
-								 *----------------------------------------------------------------*/
+								 *--------------------------------------------*/
 
 								PFMImage dataImage = PFMReader.read(image);
-								double mse = PFMUtil.MSE(dataImage,
-										referenceImage);
+								double mse = PFMUtil.getMSE(dataImage,
+										referenceImage, 2.2);
 
-								/*------------------------------------------------------------------
+								/*----------------------------------------------
 								 * Find the relevant parameter in the scene file
-								 *----------------------------------------------------------------*/
+								 *--------------------------------------------*/
 
 								File dataPBRTFile = new File(image
 										.getAbsolutePath().replaceAll(".pfm$",
 												".pbrt"));
+
 								if (!dataPBRTFile.exists()) {
 									System.err
 											.format("missing .pbrt scene file for %s!\n",

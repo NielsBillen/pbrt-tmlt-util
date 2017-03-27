@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 import java.io.BufferedWriter;
 import java.io.File;

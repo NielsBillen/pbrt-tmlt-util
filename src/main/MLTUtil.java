@@ -2,9 +2,11 @@ package main;
 
 import java.io.IOException;
 
+import pbrt.statistics.PBRTStatistics;
+
 import utilities.BibTexCleaner;
 import utilities.PBRTCleaner;
-import utilities.PSSMLTAnalysis;
+import utilities.MPSSMLTAnalysis;
 import utilities.PSSMLTSettingsFinder;
 import utilities.RenderDataOrganizer;
 import cli.CommandLineArguments;
@@ -42,8 +44,11 @@ public class MLTUtil extends CommandLineInterface {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) {
-		MLTUtil util = new MLTUtil();
-		util.parse(args);
+
+		new PBRTStatistics(
+				"/home/niels/workspace/pbrt-tmlt/results/milk/milk-tpssmlt.txt");
+		// MLTUtil util = new MLTUtil();
+		// util.parse(args);
 	}
 
 	/*
@@ -79,7 +84,7 @@ public class MLTUtil extends CommandLineInterface {
 		else if (token.equals("clean-bibtex"))
 			BibTexCleaner.main(arguments);
 		else if (token.equals("pssmltanalysis"))
-			PSSMLTAnalysis.main(arguments);
+			MPSSMLTAnalysis.main(arguments);
 		else if (token.equals("pssmltsettings"))
 			PSSMLTSettingsFinder.main(arguments);
 		else if (token.equals("pssmltorganizer"))

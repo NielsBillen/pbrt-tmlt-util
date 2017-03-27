@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTScene;
 import task.RenderTaskInterface;
 import task.RenderTaskProgressListener;
 import util.FileUtil;

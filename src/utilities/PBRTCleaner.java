@@ -2,8 +2,8 @@ package utilities;
 
 import java.io.IOException;
 
-import pbrt.PBRTParser;
-import pbrt.PBRTScene;
+import pbrt.scene.PBRTParser;
+import pbrt.scene.PBRTScene;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
 

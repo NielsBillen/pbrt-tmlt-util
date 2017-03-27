@@ -13,6 +13,19 @@ import java.nio.file.Files;
 public class FileUtil {
 	/**
 	 * 
+	 * @param offset
+	 * @param file
+	 * @return
+	 */
+	public static File get(String offset, String file) {
+		if (file.startsWith("/"))
+			return new File(file);
+		else
+			return new File(offset + "/" + file);
+	}
+
+	/**
+	 * 
 	 * @param file
 	 * @param regex
 	 * @return

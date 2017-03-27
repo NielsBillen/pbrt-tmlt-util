@@ -1,4 +1,4 @@
-package pbrt;
+package pbrt.scene;
 
 /**
  * Handler used during the parsing of a file.
