@@ -8,11 +8,14 @@ import pfm.PFMReader;
 import pfm.PFMUtil;
 import pfm.PFMWriter;
 import util.FileUtil;
+import util.Printer;
 import util.Statistics;
 import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
 
 /**
+ * --reference /home/niels/renderdata/reference/mirror-ring/mirror-ring-pssmlt-mutations-1048576-maxdepth-8-sigma-0.01-step-0.3-seed-0-0.pfm /home/niels/workspace/pbrt-tmlt/results/mirror-ring/mirror-ring-tpssmlt.pfm /home/niels/renderdata/pssmlt/mirror-ring/sigma-0.01/largestep-0.09
+ * 
  * 
  * @author Niels Billen
  * @version 0.1
@@ -75,7 +78,8 @@ public class ImageComparator extends CommandLineAdapter {
 			final String referenceFilename = getStringSetting("reference");
 			final File referenceFile = FileUtil.get(directoryFilename,
 					referenceFilename);
-			final PFMImage reference = PFMReader.read(referenceFile);
+			final PFMImage reference = PFMUtil.normalizeByAverage(PFMReader
+					.read(referenceFile));
 			final File file = FileUtil.get(directoryFilename, argument);
 
 			final String filename = file.getName();
@@ -83,10 +87,11 @@ public class ImageComparator extends CommandLineAdapter {
 			System.out.format("[ %s ]\n", filename);
 
 			if (filename.endsWith(".pfm")) {
-				final PFMImage image = PFMReader.read(file);
+				final PFMImage image = PFMUtil.normalizeByAverage(PFMReader
+						.read(file));
 				final double mse = PFMUtil.getMSE(image, reference, 2.2);
 
-				System.out.format("  %-20s: %.16f\n", mse);
+				System.out.format("  %-20s: %.16f\n", "mean squared error:",mse);
 
 				final String extensionless = filename.replaceAll("\\.pfm$", "");
 				final PFMImage mseImage = PFMUtil.getMSEImage(image, reference,
@@ -110,11 +115,20 @@ public class ImageComparator extends CommandLineAdapter {
 					}
 				});
 
+				int index = 0;
+				double[] mses = new double[images.length];
 				for (File imageFile : images) {
-					final PFMImage image = PFMReader.read(imageFile);
+					final PFMImage image = PFMUtil.normalizeByAverage(PFMReader
+							.read(imageFile));
 					double mse = PFMUtil.getMSE(image, reference, 2.2);
+					
+					mses[index++] = mse;
 					statistics.add(mse);
 				}
+				
+				for(int i = 0; i < mses.length; ++i)
+					System.out.format("%s ",Printer.print(mses[i]));
+	
 
 				System.out.println(statistics);
 			}

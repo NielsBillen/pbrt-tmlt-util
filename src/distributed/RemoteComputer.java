@@ -207,6 +207,9 @@ public class RemoteComputer extends Computer {
 	public void execute(RenderTaskInterface task,
 			RenderTaskProgressListener listener) throws NullPointerException,
 			ExecutionException {
+		if (done(task))
+			return;
+
 		final String sceneName = task.getSceneName();
 		final String outputName = task.getFilename();
 
@@ -217,7 +220,7 @@ public class RemoteComputer extends Computer {
 		final File resultDirectory = new File(task.getDirectory());
 		if (!FileUtil.mkdirs(resultDirectory))
 			throw new ExecutionException(
-					"the requested directory could not be allocated!");
+					"the requested directory "+resultDirectory.getAbsolutePath()+"\" could not be allocated!");
 
 		/*----------------------------------------------------------------------
 		 * Write the task to the result directory
@@ -292,9 +295,6 @@ public class RemoteComputer extends Computer {
 
 		try {
 			get(outFile.concat(".*"), task.getDirectory());
-//			get(outFile.concat(".exr"), task.getDirectory());
-//			get(outFile.concat(".pfm"), task.getDirectory());
-//			get(outFile.concat(".txt"), task.getDirectory());
 		} catch (Exception e) {
 			throw new ExecutionException(
 					"could not retrieve the rendered files!", e);
@@ -317,5 +317,13 @@ public class RemoteComputer extends Computer {
 			throw new ExecutionException(
 					"could not cleand the remote files in /tmp folder!", e);
 		}
+
+		/*----------------------------------------------------------------------
+		 * Check whether the render was succesful
+		 *--------------------------------------------------------------------*/
+
+		if (!done(task))
+			throw new ExecutionException(
+					"not required rendered files are present!");
 	}
 }

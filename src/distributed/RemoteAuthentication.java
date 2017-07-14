@@ -137,7 +137,10 @@ public class RemoteAuthentication implements UserInfo {
 	public boolean promptYesNo(String message) {
 		monitor.lock();
 		try {
-			if (message.startsWith("The authenticity of host"))
+			final String m = message.trim().toLowerCase();
+			if (m.startsWith("the authenticity of host"))
+				return true;
+			else if (m.startsWith("system is going down"))
 				return true;
 			Object[] options = { "yes", "no" };
 			int result = JOptionPane.showOptionDialog(null, message, "Warning",

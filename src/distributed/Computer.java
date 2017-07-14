@@ -1,5 +1,6 @@
 package distributed;
 
+import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,6 +77,26 @@ public abstract class Computer {
 	public abstract void execute(RenderTaskInterface task,
 			RenderTaskProgressListener listener) throws NullPointerException,
 			ExecutionException;
+
+	/**
+	 * 
+	 * @param task
+	 * @return
+	 */
+	public boolean done(RenderTaskInterface task) {
+		String fileName = task.getFilename();
+		String directoryName = task.getDirectory();
+
+		File directory = new File(directoryName);
+		File pbrt = new File(directory, fileName.concat(".pbrt"));
+		File pfm = new File(directory, fileName.concat(".pfm"));
+		File txt = new File(directory, fileName.concat(".txt"));
+		File exr = new File(directory, fileName.concat(".exr"));
+		File png = new File(directory, fileName.concat(".png"));
+		return pbrt.exists() && pfm.exists() && txt.exists() && png.exists()
+				&& exr.exists();
+
+	}
 
 	/**
 	 * 

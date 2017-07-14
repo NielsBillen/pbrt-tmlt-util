@@ -124,13 +124,16 @@ public class FileUtil {
 	public static boolean mkdirs(File file) {
 		if (file == null)
 			return false;
-		if (file.exists()) {
-			if (file.isDirectory())
+		
+		File absolute = file.getAbsoluteFile();
+		
+		if (absolute.exists()) {
+			if (absolute.isDirectory())
 				return true;
 			else
 				return false;
 		} else
-			return file.mkdirs();
+			return absolute.mkdirs();
 	}
 
 	/**

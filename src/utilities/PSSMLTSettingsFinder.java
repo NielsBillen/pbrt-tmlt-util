@@ -12,7 +12,9 @@ import cli.CommandLineAdapter;
 import cli.CommandLineArguments;
 import distributed.Computer;
 import distributed.LocalComputer;
+import distributed.RemoteAuthentication;
 import distributed.RemoteCluster;
+import distributed.RemoteComputer;
 import distributed.RemoteExecutionMonitor;
 import distributed.RenderTaskExecutionService;
 
@@ -83,14 +85,20 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 
 		final Random random = new Random(0);
 
-		List<Double> sigmas = new ArrayList<Double>();
-		for (int s = 2; s <= 80; s += 2) {
-			double sigma = Math.pow(s * 0.01, 3);
+		// final List<Double> sigmas = new ArrayList<Double>();
+		// for (int s = 2; s <= 80; s += 2) {
+		// double sigma = Math.pow(s * 0.01, 3);
+		// sigmas.add(sigma);
+		// }
+		final List<Double> sigmas = new ArrayList<Double>();
+		for (int s = 2; s <= 64; s += 2) {
+			double sigma = Math.pow(s * 0.01, 2);
 			sigmas.add(sigma);
 		}
-		List<Double> largesteps = new ArrayList<Double>();
-		for (int t = 4; t <= 80; t += 4) {
-			double largestep = Math.pow(t * 0.01, 3);
+
+		final List<Double> largesteps = new ArrayList<Double>();
+		for (int t = 10; t < 100; t += 10) {
+			double largestep = Math.pow(t * 0.01, 2);
 			largesteps.add(largestep);
 		}
 
@@ -112,7 +120,10 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 							getIntegerSetting("yresolution"),
 							getIntegerSetting("maxdepth"), sigma, largestep,
 							seed);
-					tasks.add(task);
+
+					boolean done = LocalComputer.get().done(task);
+					if (!done)
+						tasks.add(task);
 				}
 			}
 		}
@@ -131,15 +142,13 @@ public class PSSMLTSettingsFinder extends CommandLineAdapter {
 			service.submit(task);
 
 		service.add(LocalComputer.get());
-		for (Computer computer : RemoteCluster.getCluster(3, true)) {
-			service.add(computer);
-		}
 
-		// RemoteAuthentication remote = new RemoteAuthentication("niels",
-		// true);
-		// RemoteComputer computer = new RemoteComputer("anna.cs.kuleuven.be",
-		// remote);
-		// service.add(computer);
+		RemoteComputer merida = new RemoteComputer("merida.cs.kuleuven.be",
+				new RemoteAuthentication("niels", true));
+		service.add(merida);
+
+		for (Computer computer : RemoteCluster.getCluster(3, true))
+			service.add(computer);
 
 		service.addListener(new RemoteExecutionMonitor(service));
 

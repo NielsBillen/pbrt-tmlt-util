@@ -2,6 +2,7 @@ package util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,7 +11,7 @@ import java.util.List;
  * @author Niels Billen
  * @version 0.1
  */
-public class Statistics {
+public class Statistics implements Iterable<Double> {
 	/**
 	 * The minimum value of the data.
 	 */
@@ -45,6 +46,24 @@ public class Statistics {
 	 * 
 	 */
 	public Statistics() {
+	}
+
+	/**
+	 * 
+	 * @param iterable
+	 */
+	public void add(Iterable<Double> iterable) {
+		for (Double data : iterable)
+			add(data);
+	}
+
+	/**
+	 * 
+	 * @param iterator
+	 */
+	public void add(Iterator<Double> iterator) {
+		while (iterator.hasNext())
+			add(iterator.next());
 	}
 
 	/**
@@ -196,5 +215,19 @@ public class Statistics {
 						+ "maximum:            %.10f\n", size(), getAverage(),
 				getMedian(), getStandardDeviation(), getVariance(),
 				getMinimum(), getMaximum());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Iterable#iterator()
+	 */
+	@Override
+	public Iterator<Double> iterator() {
+		if (!isSorted) {
+			isSorted = true;
+			Collections.sort(data);
+		}
+		return data.iterator();
 	}
 }

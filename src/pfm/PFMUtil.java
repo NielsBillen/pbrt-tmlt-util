@@ -34,6 +34,22 @@ import util.Statistics;
  */
 public class PFMUtil {
 	/**
+	 * 
+	 * @param image
+	 * @return
+	 */
+	public static PFMImage normalizeByAverage(PFMImage image) {
+		double average = getAverage(image);
+		double inv = 1.0 / average;
+
+		PFMImage result = new PFMImage(image.width, image.height);
+		for (int i = 0; i < image.nbOfFloats(); ++i) {
+			result.setFloat(i, (float) (image.getFloat(i) * inv));
+		}
+		return result;
+	}
+
+	/**
 	 * Returns the average value of the color components in the image.
 	 * 
 	 * @param image
@@ -67,8 +83,9 @@ public class PFMUtil {
 	 *             when the sizes of the images do not match.
 	 * @return the mean squared error between the two given images.
 	 */
-	public static double getRMSE(PFMImage image1, PFMImage image2, double gamma)
-			throws IllegalArgumentException {
+	public static double
+			getRMSE(PFMImage image1, PFMImage image2, double gamma)
+					throws IllegalArgumentException {
 		if (image1 == null)
 			throw new NullPointerException("the first image is null!");
 		if (image2 == null)

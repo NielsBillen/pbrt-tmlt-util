@@ -14,8 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
-import pbrt.scene.PBRTParser;
-import pbrt.scene.PBRTScene;
 import pfm.PFMImage;
 import pfm.PFMReader;
 import pfm.PFMUtil;
@@ -26,6 +24,9 @@ import cli.CommandLineArguments;
 
 /**
  * Searches the optimal settings for rendering a scene with MPSSMLT integrator.
+ * 
+ * --directory /home/niels/renderdata --output /home/niels/analysis
+ * reference/milk mpssmlt/milk
  * 
  * @author Niels Billen
  * @version 0.1
@@ -159,6 +160,9 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		else
 			dataFile = new File(directory + "/" + data);
 
+		System.out.format("analysing data from %s and %s\n",
+				referenceFile.getAbsolutePath(), dataFile.getAbsolutePath());
+
 		analyse(referenceFile, dataFile);
 	}
 
@@ -204,7 +208,9 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		 * Load the reference image
 		 **********************************************************************/
 
-		final PFMImage referenceImage = PFMReader.read(referenceImageFile);
+		final PFMImage referenceImage = PFMUtil.normalizeByAverage(PFMReader
+				.read(referenceImageFile));
+		System.out.println("read reference image");
 
 		/***********************************************************************
 		 * Find the best settings
@@ -227,13 +233,10 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 					.listFiles(largestepFilter);
 			Arrays.sort(largestepFolders);
 
-			for (File largestepFolder : largestepFolders) {
+			for (final File largestepFolder : largestepFolders) {
 				final String largestepFolderName = largestepFolder.getName();
 				final double largestep = Double.parseDouble(largestepFolderName
 						.replaceAll("largestep\\-", ""));
-
-				final File[] images = largestepFolder.listFiles(pfmFilter);
-				Arrays.sort(images);
 
 				Thread thread = new Thread() {
 					/*
@@ -242,79 +245,79 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 					 * @see java.lang.Thread#run()
 					 */
 					public void run() {
-						Statistics statistics = new Statistics();
+						try {
+							Statistics statistics = new Statistics();
 
-						for (final File image : images) {
+							final File[] images = largestepFolder
+									.listFiles(pfmFilter);
+							Arrays.sort(images);
+							
+							if (images.length < 400)
+								return;
+
+							for (final File image : images) {
+								try {
+									/*----------------------------------------------
+									 * Calculate the mean squared error
+									 *--------------------------------------------*/
+
+									PFMImage dataImage = PFMUtil
+											.normalizeByAverage(PFMReader
+													.read(image));
+									double mse = PFMUtil.getMSE(dataImage,
+											referenceImage, 2.2);
+
+									/*----------------------------------------------
+									 * Find the relevant parameter in the scene file
+									 *--------------------------------------------*/
+
+									File dataPBRTFile = new File(image
+											.getAbsolutePath().replaceAll(
+													".pfm$", ".pbrt"));
+
+									if (!dataPBRTFile.exists()) {
+										System.err
+												.format("missing .pbrt scene file for %s!\n",
+														dataPBRTFile
+																.getAbsolutePath());
+										continue;
+									}
+
+									statistics.add(mse);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+
+							/*------------------------------------------------------------------
+							 * Add the statistics
+							 *----------------------------------------------------------------*/
+
+							lock.lock();
+
 							try {
-								/*----------------------------------------------
-								 * Calculate the mean squared error
-								 *--------------------------------------------*/
+								TreeMap<Double, Statistics> largestepData = data
+										.get(sigma);
 
-								PFMImage dataImage = PFMReader.read(image);
-								double mse = PFMUtil.getMSE(dataImage,
-										referenceImage, 2.2);
-
-								/*----------------------------------------------
-								 * Find the relevant parameter in the scene file
-								 *--------------------------------------------*/
-
-								File dataPBRTFile = new File(image
-										.getAbsolutePath().replaceAll(".pfm$",
-												".pbrt"));
-
-								if (!dataPBRTFile.exists()) {
-									System.err
-											.format("missing .pbrt scene file for %s!\n",
-													dataPBRTFile
-															.getAbsolutePath());
-									continue;
+								if (largestepData == null) {
+									largestepData = new TreeMap<Double, Statistics>();
+									data.put(sigma, largestepData);
 								}
 
-								PBRTScene scene = PBRTParser
-										.parse(dataPBRTFile);
-								double sceneSigma = Double.parseDouble(scene
-										.findSetting("Integrator.sigma"));
-								double sceneLargeStep = Double
-										.parseDouble(scene
-												.findSetting("Integrator.largestepprobability"));
+								largestepData.put(largestep, statistics);
 
-								// verify the settings
-								if (Math.abs(sceneSigma - sigma) > 1e-8)
-									throw new IllegalStateException(
-											"mismatch between folder's sigma and the .pbrt file sigma! "
-													+ sceneSigma + " != "
-													+ sigma);
-								if (Math.abs(sceneLargeStep - largestep) > 1e-8)
-									throw new IllegalStateException(
-											"mismatch between folder's largestep and the .pbrt file largestep! "
-													+ sceneLargeStep + " != "
-													+ largestep);
-
-								statistics.add(mse);
-							} catch (IOException e) {
+								System.out.format("%.10f %.10f : %.16f\n",
+										sigma, largestep,
+										statistics.getAverage());
+							} catch (Exception e) {
+								e.printStackTrace();
+							} finally {
+								lock.unlock();
 							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							System.err.flush();
 						}
-
-						/*------------------------------------------------------------------
-						 * Add the statistics
-						 *----------------------------------------------------------------*/
-
-						lock.lock();
-
-						TreeMap<Double, Statistics> largestepData = data
-								.get(sigma);
-
-						if (largestepData == null) {
-							largestepData = new TreeMap<Double, Statistics>();
-							data.put(sigma, largestepData);
-						}
-
-						largestepData.put(largestep, statistics);
-
-						System.out.format("%.10f %.10f : %.16f\n", sigma,
-								largestep, statistics.getAverage());
-
-						lock.unlock();
 					};
 				};
 				service.submit(thread);
@@ -327,6 +330,15 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		/***********************************************************************
+		 * 
+		 */
+
+		TreeMap<Double, TreeMap<Double, Statistics>> collection = data;
+
+//		for (int i = 0; i < 1; ++i)
+//			collection = subsample_uncorrelated(collection);
 
 		/***********************************************************************
 		 * Write the data and find the optimal settings
@@ -352,7 +364,7 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
 			writer.write("sigma largestep average median std variance size\n");
 
-			for (Entry<Double, TreeMap<Double, Statistics>> e1 : data
+			for (Entry<Double, TreeMap<Double, Statistics>> e1 : collection
 					.entrySet()) {
 				for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
 					double sigma = e1.getKey();
@@ -408,8 +420,8 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		builder.append(String.format("    %-40s %.10f\n", "largestep:",
 				bestAverageLargeStep));
 
-		Statistics bestAverageStatistics = data.get(bestAverageSigma).get(
-				bestAverageLargeStep);
+		Statistics bestAverageStatistics = collection.get(bestAverageSigma)
+				.get(bestAverageLargeStep);
 
 		builder.append(String.format("    %-40s %.10f\n", "average mse:",
 				bestAverageStatistics.getAverage()));
@@ -433,7 +445,7 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		builder.append(String.format("    %-40s %.10f\n", "largestep:",
 				bestMedianLargeStep));
 
-		Statistics bestMedianStatistics = data.get(bestMedianSigma).get(
+		Statistics bestMedianStatistics = collection.get(bestMedianSigma).get(
 				bestMedianLargeStep);
 
 		builder.append(String.format("    %-40s %.10f\n", "average mse:",
@@ -454,7 +466,7 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 
 		System.out.println(builder);
 
-		File results = new File(outputDirectory, sceneName + "-results.tex");
+		File results = new File(outputDirectory, sceneName + "-results.txt");
 		try (BufferedWriter writer = Files.newBufferedWriter(results.toPath())) {
 			writer.write(builder.toString());
 		}
@@ -463,6 +475,7 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 		 * Generate tikz plot data
 		 **********************************************************************/
 
+		System.out.println(outputDirectory.getAbsolutePath());
 		File tex = new File(outputDirectory, sceneName + ".tex");
 		try (BufferedWriter writer = Files.newBufferedWriter(tex.toPath())) {
 			writer.write("\\documentclass{standalone}\n");
@@ -477,5 +490,185 @@ public class MPSSMLTAnalysis extends CommandLineAdapter {
 			writer.write("\t\\end{tikzpicture}\n");
 			writer.write("\\end{document}\n");
 		}
+	}
+
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public TreeMap<Double, TreeMap<Double, Statistics>> subsample_correlated(
+			TreeMap<Double, TreeMap<Double, Statistics>> data) {
+		int nx = data.size();
+		int ny = data.firstEntry().getValue().size();
+
+		double[] x = new double[nx];
+		double[] y = new double[ny];
+		Statistics[][] statistics = new Statistics[nx][ny];
+
+		int i = 0;
+		for (Entry<Double, TreeMap<Double, Statistics>> e1 : data.entrySet()) {
+			x[i] = e1.getKey();
+
+			int j = 0;
+			for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
+				if (i == 0) {
+					y[j] = e2.getKey();
+				} else if (y[j] != e2.getKey()) {
+					throw new IllegalStateException("data mismatch!");
+				}
+				statistics[i][j] = e2.getValue();
+				++j;
+			}
+
+			++i;
+		}
+
+		TreeMap<Double, TreeMap<Double, Statistics>> result = new TreeMap<Double, TreeMap<Double, Statistics>>();
+
+		for (int k = 0; k < nx - 1; ++k) {
+			TreeMap<Double, Statistics> c = new TreeMap<Double, Statistics>();
+			double xx = (x[k] + x[k + 1]) * 0.5;
+
+			for (int l = 0; l < ny - 1; ++l) {
+				double yy = (y[l] + y[l + 1]) * 0.5;
+
+				Statistics average = new Statistics();
+				average.add(statistics[k][l]);
+				average.add(statistics[k + 1][l]);
+				average.add(statistics[k][l + 1]);
+				average.add(statistics[k + 1][l + 1]);
+
+				c.put(yy, average);
+
+			}
+
+			result.put(xx, c);
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public TreeMap<Double, TreeMap<Double, Statistics>> subsample_uncorrelated(
+			TreeMap<Double, TreeMap<Double, Statistics>> data) {
+		int nx = data.size();
+		int ny = data.firstEntry().getValue().size();
+
+		double[] x = new double[nx];
+		double[] y = new double[ny];
+		Statistics[][] statistics = new Statistics[nx][ny];
+
+		int i = 0;
+		for (Entry<Double, TreeMap<Double, Statistics>> e1 : data.entrySet()) {
+			x[i] = e1.getKey();
+
+			int j = 0;
+			for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
+				if (i == 0) {
+					y[j] = e2.getKey();
+				} else if (y[j] != e2.getKey()) {
+					throw new IllegalStateException("data mismatch!");
+				}
+				statistics[i][j] = e2.getValue();
+				++j;
+			}
+
+			++i;
+		}
+
+		TreeMap<Double, TreeMap<Double, Statistics>> result = new TreeMap<Double, TreeMap<Double, Statistics>>();
+
+		for (int k = 0; k < nx - 1; k += 2) {
+			TreeMap<Double, Statistics> c = new TreeMap<Double, Statistics>();
+			double xx = (x[k] + x[k + 1]) * 0.5;
+
+			for (int l = 0; l < ny - 1; l += 2) {
+				double yy = (y[l] + y[l + 1]) * 0.5;
+
+				Statistics average = new Statistics();
+				average.add(statistics[k][l]);
+				average.add(statistics[k + 1][l]);
+				average.add(statistics[k][l + 1]);
+				average.add(statistics[k + 1][l + 1]);
+
+				c.put(yy, average);
+
+			}
+
+			result.put(xx, c);
+		}
+
+		return result;
+
+	}
+
+	/**
+	 * 
+	 * @param data
+	 * @return
+	 */
+	public TreeMap<Double, TreeMap<Double, Statistics>>
+			subsample_uncorrelated3(
+					TreeMap<Double, TreeMap<Double, Statistics>> data) {
+		int nx = data.size();
+		int ny = data.firstEntry().getValue().size();
+
+		double[] x = new double[nx];
+		double[] y = new double[ny];
+		Statistics[][] statistics = new Statistics[nx][ny];
+
+		int i = 0;
+		for (Entry<Double, TreeMap<Double, Statistics>> e1 : data.entrySet()) {
+			x[i] = e1.getKey();
+
+			int j = 0;
+			for (Entry<Double, Statistics> e2 : e1.getValue().entrySet()) {
+				if (i == 0) {
+					y[j] = e2.getKey();
+				} else if (y[j] != e2.getKey()) {
+					throw new IllegalStateException("data mismatch!");
+				}
+				statistics[i][j] = e2.getValue();
+				++j;
+			}
+
+			++i;
+		}
+
+		TreeMap<Double, TreeMap<Double, Statistics>> result = new TreeMap<Double, TreeMap<Double, Statistics>>();
+
+		for (int k = 0; k < nx - 2; k += 3) {
+			TreeMap<Double, Statistics> c = new TreeMap<Double, Statistics>();
+			double xx = x[k + 1];
+
+			for (int l = 0; l < ny - 2; l += 3) {
+				double yy = y[l + 1];
+
+				Statistics average = new Statistics();
+				average.add(statistics[k][l]);
+				average.add(statistics[k + 1][l]);
+				average.add(statistics[k + 2][l]);
+				average.add(statistics[k][l + 1]);
+				average.add(statistics[k + 1][l + 2]);
+				average.add(statistics[k + 2][l + 2]);
+				average.add(statistics[k][l + 2]);
+				average.add(statistics[k + 1][l + 2]);
+				average.add(statistics[k + 2][l + 2]);
+
+				c.put(yy, average);
+
+			}
+
+			result.put(xx, c);
+		}
+
+		return result;
+
 	}
 }

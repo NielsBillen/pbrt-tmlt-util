@@ -126,6 +126,9 @@ public class LocalComputer extends Computer {
 	@Override
 	public void execute(RenderTaskInterface task,
 			RenderTaskProgressListener listener) {
+		if (done(task))
+			return;
+
 		/*----------------------------------------------------------------------
 		 * Allocate the result directory
 		 *--------------------------------------------------------------------*/
@@ -220,6 +223,14 @@ public class LocalComputer extends Computer {
 					+ resultDirectory.getAbsolutePath() + "\"");
 		}
 		sceneFile.delete();
+
+		/*----------------------------------------------------------------------
+		 * Check whether the render was succesful
+		 *--------------------------------------------------------------------*/
+
+		if (!done(task))
+			throw new ExecutionException(
+					"not required rendered files are present!");
 	}
 
 	/*

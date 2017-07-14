@@ -299,7 +299,7 @@ public class RenderTaskExecutionService {
 						try {
 							e.printStackTrace();
 							busy.remove(pc);
-							remainingTasks.add(task);
+							remainingTasks.addFirst(task);
 							for (RenderTaskExecutionServiceListener listener : listeners)
 								listener.error(pc, task);
 						} finally {
